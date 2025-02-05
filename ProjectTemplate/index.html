@@ -1,43 +1,208 @@
 ﻿<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-	<meta charset="utf-8" />
-	<title></title>
-	<!--DO NOT FORGET THIS SCRIPT TAG SO YOU CAN USE JQUERY!!!!!-->
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Feedback Form</title>
+	<!-- jQuery for AJAX and interactivity -->
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-
-	<!--YOUR OWN JAVASCRIPT CAN GO RIGHT HERE-->
-	<script type="text/javascript">
-		function TestButtonHandler() {
-			var webMethod = "ProjectServices.asmx/TestConnection";
-			var parameters = "{}";
-
-			//jQuery ajax method
-			$.ajax({
-				type: "POST",
-				url: webMethod,
-				data: parameters,
-				contentType: "application/json; charset=utf-8",
-				dataType: "json",
-				success: function (msg) {
-					var responseFromServer = msg.d;
-					alert(responseFromServer);
-				},
-				error: function (e) {
-					alert("this code will only execute if javascript is unable to access the webservice");
-				}
-			});
-		}
-	</script>
-	<!--END OF YOUR OWN JAVASCRIPT-->
-
-	<!--AND YOUR OWN CSS CAN GO HERE AS WELL-->
+	<!-- Font Awesome for icons -->
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+	<!-- Custom CSS -->
 	<style>
+		body {
+			font-family: Arial, sans-serif;
+			background: linear-gradient(135deg, #f0f2f5, #d9e4f5);
+			margin: 0;
+			padding: 0;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			min-height: 100vh;
+		}
 
+		.form-container {
+			background-color: #fff;
+			padding: 30px; /* Increased padding */
+			border-radius: 12px;
+			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+			width: 100%;
+			max-width: 900px; /* Increased width */
+			margin: 20px;
+		}
+
+			.form-container h2 {
+				margin-top: 0;
+				color: #333;
+				text-align: center;
+				font-size: 28px; /* Larger font size */
+				margin-bottom: 25px;
+			}
+
+		.form-group {
+			margin-bottom: 20px;
+		}
+
+			.form-group label {
+				display: block;
+				margin-bottom: 8px;
+				color: #555;
+				font-weight: bold;
+			}
+
+		.slider-container {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			margin-top: 10px;
+		}
+
+			.slider-container input[type="range"] {
+				width: 80%;
+				margin: 0 10px;
+			}
+
+			.slider-container i {
+				font-size: 20px;
+				color: #0078d4;
+			}
+
+		.slider-value {
+			font-size: 1.2em;
+			color: #333;
+			text-align: center;
+			margin-top: 10px;
+			font-weight: bold;
+		}
+
+		textarea {
+			width: 100%;
+			padding: 12px; /* Increased padding */
+			border: 1px solid #ddd;
+			border-radius: 8px;
+			font-size: 14px;
+			resize: vertical;
+		}
+
+		.submit-btn {
+			background-color: #0078d4;
+			color: #fff;
+			border: none;
+			padding: 12px 20px;
+			border-radius: 8px;
+			cursor: pointer;
+			font-size: 16px;
+			width: 100%;
+			transition: background-color 0.3s ease;
+		}
+
+			.submit-btn:hover {
+				background-color: #005a9e;
+			}
+
+		@media (max-width: 480px) {
+			.form-container {
+				padding: 15px;
+			}
+
+			.slider-container input[type="range"] {
+				width: 70%;
+			}
+		}
 	</style>
-	<!--END OF YOUR OWN CSS-->
-</head >
+</head>
 <body>
-	<button onclick="javascript: TestButtonHandler();">Click here to test connection!</button>
+	<div class="form-container">
+		<h2>Feedback</h2>
+		<form id="feedbackForm">
+			<!-- Satisfaction Question -->
+			<div class="form-group">
+				<label for="satisfaction">How satisfied are you with your work this week?</label>
+				<div class="slider-container">
+					<i class="fas fa-thumbs-down"></i>
+					<input type="range" id="satisfaction" name="satisfaction" min="0" max="10" value="5">
+					<i class="fas fa-thumbs-up"></i>
+				</div>
+				<div class="slider-value" id="satisfactionValue">Neutral</div>
+			</div>
+
+			<!-- Blockers Question -->
+			<div class="form-group">
+				<label for="blockers">What's blocking you the most this week?</label>
+				<textarea id="blockers" name="blockers" rows="4" placeholder="Share your thoughts..."></textarea>
+			</div>
+
+			<!-- Additional Questions (Scalable) -->
+			<div class="form-group">
+				<label for="improvements">What improvements would you suggest?</label>
+				<textarea id="improvements" name="improvements" rows="4" placeholder="Your suggestions..."></textarea>
+			</div>
+
+			<!-- Submit Button -->
+			<button type="submit" class="submit-btn">Submit Feedback</button>
+		</form>
+	</div>
+
+	<!-- Custom JavaScript -->
+	<script type="text/javascript">
+		$(document).ready(function () {
+			// Update slider value text
+			$('#satisfaction').on('input', function () {
+				const value = $(this).val();
+				let text;
+				if (value <= 3) {
+					text = 'Dissatisfied';
+				} else if (value <= 7) {
+					text = 'Neutral';
+				} else {
+					text = 'Satisfied';
+				}
+				$('#satisfactionValue').text(text);
+			});
+
+			// Handle form submission
+			$('#feedbackForm').on('submit', function (e) {
+				e.preventDefault();
+
+				// Get values
+				const satisfaction = $('#satisfaction').val();
+				const blockers = $('#blockers').val().trim();
+				const improvements = $('#improvements').val().trim();
+				let isValid = true;
+
+				// Clear previous error messages
+				$('.error-message').remove();
+
+				// Validate input fields
+				if (blockers === '') {
+					$('#blockers').after('<span class="error-message" style="color: red;">Please enter a response.</span>');
+					isValid = false;
+				}
+				if (improvements === '') {
+					$('#improvements').after('<span class="error-message" style="color: red;">Please enter a response.</span>');
+					isValid = false;
+				}
+
+				if (!isValid) return;
+
+				// Send data to the server using AJAX
+				$.ajax({
+					type: "POST",
+					url: "ProjectServices.asmx/SubmitFeedback",
+					data: JSON.stringify({ satisfaction: satisfaction, blockers: blockers, improvements: improvements }),
+					contentType: "application/json; charset=utf-8",
+					dataType: "json",
+					success: function (response) {
+						$('#feedbackForm').after('<p class="success-message" style="color: green; text-align: center;">Thank you for your feedback!</p>');
+						$('#feedbackForm')[0].reset();
+						$('#satisfactionValue').text('Neutral');
+					},
+					error: function () {
+						$('#feedbackForm').after('<p class="error-message" style="color: red; text-align: center;">An error occurred. Please try again.</p>');
+					}
+				});
+			});
+		});
+	</script>
 </body>
-</html >
+</html>
