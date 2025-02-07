@@ -1,11 +1,13 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const feedbackRoutes = require('./routes/feedback-routes');
+const cors = require('cors');
 
 require('dotenv').config();
 
 const app = express();
 
+app.use(cors());
 app.use(bodyParser.json());  // Parse JSON
 
 // Feedback routes

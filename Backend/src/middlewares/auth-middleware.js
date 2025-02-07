@@ -3,7 +3,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const authenticateApiKey = (req, res, next) => {
-    const apiKey = req.header("x-api-key");
+    const apiKey = process.env.API_KEY;
 
     if (!apiKey) {
         return res.status(401).json({ message: "Access denied. No API key provided." });
