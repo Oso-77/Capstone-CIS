@@ -23,32 +23,32 @@
 
 		.form-container {
 			background-color: #fff;
-			padding: 30px; /* Increased padding */
+			padding: 30px;
 			border-radius: 12px;
 			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 			width: 100%;
-			max-width: 900px; /* Increased width */
+			max-width: 900px;
 			margin: 20px;
 		}
 
-			.form-container h2 {
-				margin-top: 0;
-				color: #333;
-				text-align: center;
-				font-size: 28px; /* Larger font size */
-				margin-bottom: 25px;
-			}
+		.form-container h2 {
+			margin-top: 0;
+			color: #333;
+			text-align: center;
+			font-size: 28px;
+			margin-bottom: 25px;
+		}
 
 		.form-group {
 			margin-bottom: 20px;
 		}
 
-			.form-group label {
-				display: block;
-				margin-bottom: 8px;
-				color: #555;
-				font-weight: bold;
-			}
+		.form-group label {
+			display: block;
+			margin-bottom: 8px;
+			color: #555;
+			font-weight: bold;
+		}
 
 		.slider-container {
 			display: flex;
@@ -57,15 +57,15 @@
 			margin-top: 10px;
 		}
 
-			.slider-container input[type="range"] {
-				width: 80%;
-				margin: 0 10px;
-			}
+		.slider-container input[type="range"] {
+			width: 80%;
+			margin: 0 10px;
+		}
 
-			.slider-container i {
-				font-size: 20px;
-				color: #0078d4;
-			}
+		.slider-container i {
+			font-size: 20px;
+			color: #0078d4;
+		}
 
 		.slider-value {
 			font-size: 1.2em;
@@ -77,7 +77,7 @@
 
 		textarea {
 			width: 100%;
-			padding: 12px; /* Increased padding */
+			padding: 12px;
 			border: 1px solid #ddd;
 			border-radius: 8px;
 			font-size: 14px;
@@ -96,9 +96,9 @@
 			transition: background-color 0.3s ease;
 		}
 
-			.submit-btn:hover {
-				background-color: #005a9e;
-			}
+		.submit-btn:hover {
+			background-color: #005a9e;
+		}
 
 		@media (max-width: 480px) {
 			.form-container {
@@ -138,7 +138,7 @@
 				<textarea id="blockers" name="blockers" rows="4" placeholder="Share your thoughts..."></textarea>
 			</div>
 
-			<!-- Additional Questions (Scalable) -->
+			<!-- Improvements Question -->
 			<div class="form-group">
 				<label for="improvements">What improvements would you suggest?</label>
 				<textarea id="improvements" name="improvements" rows="4" placeholder="Your suggestions..."></textarea>
@@ -146,6 +146,11 @@
 
 			<!-- Submit Button -->
 			<button type="submit" class="submit-btn">Submit Feedback</button>
+
+			<!-- Redirect to Login Button -->
+			<button type="button" class="submit-btn" onclick="window.location.href='/api/login';" style="margin-top: 10px; background-color: #6c757d;">
+				Admin Login
+			</button>
 		</form>
 	</div>
 
@@ -189,35 +194,34 @@
 				$('.error-message').remove();
 
 				// Validate input fields
-				if (feelings === '' || feelings.length === 0 || feelings.length > 150) {
-					$('#feelings').after(`<span class="error-message" style="color: red;">Your response is either blank or exceeds 150 characters. It is currently ${$('#feelings').val().length} characters.</span>`);
+				if (!feelings || feelings.length > 150) {
+					$('#feelings').after(`<span class="error-message" style="color: red;">Your response is either blank or exceeds 150 characters.</span>`);
 					isValid = false;
 				}
-				if (blockers === '' || blockers.length === 0 || blockers.length > 150) {
-					$('#blockers').after(`<span class="error-message" style="color: red;">Your response is either blank or exceeds 150 characters. It is currently ${$('#blockers').val().length} characters.</span>`);
+				if (!blockers || blockers.length > 150) {
+					$('#blockers').after(`<span class="error-message" style="color: red;">Your response is either blank or exceeds 150 characters.</span>`);
 					isValid = false;
 				}
-				if (improvements === '' || improvements.length === 0 || improvements.length > 150) {
-					$('#improvements').after(`<span class="error-message" style="color: red;">Your response is either blank or exceeds 150 characters. It is currently ${$('#improvements').val().length} characters.</span>`);
+				if (!improvements || improvements.length > 150) {
+					$('#improvements').after(`<span class="error-message" style="color: red;">Your response is either blank or exceeds 150 characters.</span>`);
 					isValid = false;
 				}
 
 				if (!isValid) return;
 
-				// Send data to the server using AJAX
 				$.ajax({
 					type: "POST",
-					url: "http://localhost:3000/api/feedback",
+					url: "/api/feedback",
 					data: JSON.stringify({ feedback: satisfaction, comment1: feelings, comment2: blockers, comment3: improvements }),
 					contentType: "application/json; charset=utf-8",
 					dataType: "json",
-					success: function (response) {
-						$('#feedbackForm').after('<p class="success-message" style="color: green; text-align: center;">Thank you for your feedback!</p>');
+					success: function () {
+						alert("Thank you for your feedback!");
 						$('#feedbackForm')[0].reset();
 						$('#satisfactionValue').text('Neutral');
 					},
 					error: function () {
-						$('#feedbackForm').after('<p class="error-message" style="color: red; text-align: center;">An error occurred. Please try again.</p>');
+						alert("An error occurred. Please try again.");
 					}
 				});
 			});
