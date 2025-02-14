@@ -1,3 +1,5 @@
+//We may need to update this. I dont know if we should be requiring API key to see web pages. Also we need 
+
 const express = require("express");
 const { authenticateToken, authenticateApiKey } = require("../middlewares/auth-middleware");
 const path = require('path');
@@ -55,6 +57,12 @@ router.post('/login', async (req, res) => {
 
 router.get('/dashboard', authenticateApiKey, (req, res) => {
     res.sendFile(path.join(__dirname + '../../../../Frontend', 'dashboard.html'));
+    
+});
+
+router.get('/main', authenticateApiKey, (req, res) => {
+    res.sendFile(path.join(__dirname + '../../../../Frontend/response_board', 'main.html'));
+    
 });
 
 // POST - Submit feedback
@@ -76,10 +84,27 @@ router.post("/feedback", authenticateApiKey, async (req, res) => {
 });
 
 // GET - Fetch feedback (Protected)
-router.get("/feedback", authenticateApiKey, authenticateToken, async (req, res) => {
+// Do we need to auth the token here? Commented it out for now
+router.get("/feedback", authenticateApiKey, 
+    // authenticateToken, 
+    async (req, res) => {
     
     try {
         const [rows] = await db.execute("SELECT * FROM feedback");
+        res.json(rows);
+    } catch (error) {
+        console.error("Database error:", error);
+        res.status(500).json({ message: "Internal server error." });
+    }
+});
+
+router.get("/response", authenticateApiKey, 
+    // authenticateToken, 
+    async (req, res) => {
+    
+    try {
+        const [rows] = await db.execute("SELECT * FROM responses");
+        //TODO: Add where clause. Leave now for testing.
         res.json(rows);
     } catch (error) {
         console.error("Database error:", error);
