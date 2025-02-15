@@ -9,64 +9,64 @@
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- Custom CSS -->
-	<style>
-		body {
-			font-family: Arial, sans-serif;
-			background: linear-gradient(135deg, #f0f2f5, #d9e4f5);
-			margin: 0;
-			padding: 0;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			min-height: 100vh;
-		}
-	
-		.form-container {
-			background-color: #fff;
-			padding: 30px; 
-			border-radius: 12px;
-			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-			width: 100%;
-			max-width: 1100px; 
-			margin: 20px;
-			overflow: hidden; 
-		}
-	
-		.form-container h2 {
-			margin-top: 0;
-			color: #333;
-			text-align: center;
-			font-size: 28px; 
-			margin-bottom: 25px;
-		}
-	
-		table {
-			width: calc(100% - 24px); 
-			margin-top: 20px;
-			border-collapse: collapse;
-			background-color: #fff;
-			border-radius: 8px;
-			box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-			margin-left: 12px; 
-			margin-right: 12px; 
-		}
-	
-		table th, table td {
-			padding: 12px;
-			text-align: left;
-			border-bottom: 1px solid #ddd;
-		}
-	
-		table th {
-			background-color: #0078d4;
-			color: #fff;
-		}
-	
-		table tr:hover {
-			background-color: #f5f5f5;
-		}
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #f0f2f5, #d9e4f5);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
 
-		.logout-btn {
+        .form-container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 1100px;
+            margin: 20px;
+            overflow: hidden;
+        }
+
+            .form-container h2 {
+                margin-top: 0;
+                color: #333;
+                text-align: center;
+                font-size: 28px;
+                margin-bottom: 25px;
+            }
+
+        table {
+            width: calc(100% - 24px);
+            margin-top: 20px;
+            border-collapse: collapse;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            margin-left: 12px;
+            margin-right: 12px;
+        }
+
+            table th, table td {
+                padding: 12px;
+                text-align: left;
+                border-bottom: 1px solid #ddd;
+            }
+
+            table th {
+                background-color: #0078d4;
+                color: #fff;
+            }
+
+            table tr:hover {
+                background-color: #f5f5f5;
+            }
+
+        .logout-btn {
             background-color: #d9534f;
             color: white;
             border: none;
@@ -78,18 +78,18 @@
             transition: background-color 0.3s;
         }
 
-        .logout-btn:hover {
-            background-color: #c9302c;
-        }
-	</style>
-	
+            .logout-btn:hover {
+                background-color: #c9302c;
+            }
+    </style>
+
 </head>
 <body>
     <div class="form-container">
         <h2>Dashboard</h2>
         <!-- Feedback Table -->
         <h3>Feedback Results</h3>
-		<button class="logout-btn" id="logoutBtn">Logout</button>
+        <button class="logout-btn" id="logoutBtn">Logout</button>
         <table id="feedbackTable">
             <thead>
                 <tr>
@@ -101,6 +101,7 @@
                     <th>GPT Answer 1</th>
                     <th>GPT Answer 2</th>
                     <th>GPT Answer 3</th>
+                    <th>Leader Response</th>
                 </tr>
             </thead>
             <tbody>
@@ -109,46 +110,46 @@
     </div>
 
     <script type="text/javascript">
-
         $(document).ready(function () {
-            const token = localStorage.getItem("token");  
+            const token = localStorage.getItem("token");
 
-			$('#logoutBtn').click(function () {
+            $('#logoutBtn').click(function () {
                 localStorage.removeItem("token");
                 window.location.href = '/api/login';
             });
 
             if (!token) {
                 alert("You need to log in to access the dashboard.");
-                window.location.href = '/api/login'; 
+                window.location.href = '/api/login';
             } else {
                 $.ajax({
                     type: 'GET',
-                    url: '/api/feedback',  
+                    url: '/api/feedback',
                     headers: {
-                        "Authorization": `Bearer ${token}`  
+                        "Authorization": `Bearer ${token}`
                     },
                     success: function (response) {
                         $('#feedbackTable tbody').empty();
 
                         response.forEach(feedback => {
                             const row = `
-                                <tr>
-                                    <td>${feedback.entryID}</td>
-                                    <td>${feedback.feedback}</td>
-                                    <td>${feedback.comment1}</td>
-                                    <td>${feedback.comment2}</td>
-                                    <td>${feedback.comment3}</td>
-                                    <td>${feedback.gpt_answer_1}</td>
-                                    <td>${feedback.gpt_answer_2}</td>
-                                    <td>${feedback.gpt_answer_3}</td>
-                                </tr>
-                            `;
+                                    <tr>
+                                        <td>${feedback.entryID}</td>
+                                        <td>${feedback.feedback}</td>
+                                        <td>${feedback.comment1}</td>
+                                        <td>${feedback.comment2}</td>
+                                        <td>${feedback.comment3}</td>
+                                        <td>${feedback.gpt_answer_1}</td>
+                                        <td>${feedback.gpt_answer_2}</td>
+                                        <td>${feedback.gpt_answer_3}</td>
+                                        <td>${feedback.leader_response || ''}</td>
+                                    </tr>
+                                `;
                             $('#feedbackTable tbody').append(row);
                         });
                     },
-                    error: function(xhr, status, error) {
-                        alert('Error occurred: ' + xhr.responseJSON.message);  
+                    error: function (xhr, status, error) {
+                        alert('Error occurred: ' + xhr.responseJSON.message);
                     }
                 });
             }

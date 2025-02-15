@@ -1,4 +1,4 @@
-const { createFeedback, getAllFeedback } = require('../models/feedback-model');
+const { createFeedback, getAllFeedback, addLeaderResponse } = require('../controllers/feedback-controller');
 
 // Handle POST
 const create = async (req, res) => {
@@ -22,4 +22,17 @@ const getAll = async (req, res) => {
     }
 };
 
-module.exports = { create, getAll };
+// Handle POST for Leader's response
+const respondToFeedback = async (req, res) => {
+    const { responseId, leaderResponse } = req.body;
+    try {
+        await addLeaderResponse(responseId, leaderResponse);
+        res.status(200).json({ message: 'Leader response added successfully' });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to add leader response' });
+    }
+};
+
+module.exports = { create, getAll, respondToFeedback };
+
+

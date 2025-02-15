@@ -19,6 +19,10 @@ router.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname + '../../../../Frontend', 'login.html'));
 });
 
+router.get('/leader-response', (req, res) => {
+    res.sendFile(path.join(__dirname, '../../../Frontend', 'leader_response.html'));
+});
+
 router.post('/login', async (req, res) => {
     const { username, password } = req.body;
 
@@ -57,12 +61,12 @@ router.post('/login', async (req, res) => {
 
 router.get('/dashboard', authenticateApiKey, (req, res) => {
     res.sendFile(path.join(__dirname + '../../../../Frontend', 'dashboard.html'));
-    
+
 });
 
 router.get('/main', authenticateApiKey, (req, res) => {
     res.sendFile(path.join(__dirname + '../../../../Frontend/response_board', 'main.html'));
-    
+
 });
 
 // POST - Submit feedback
@@ -83,33 +87,65 @@ router.post("/feedback", authenticateApiKey, async (req, res) => {
     }
 });
 
-// GET - Fetch feedback (Protected)
-// Do we need to auth the token here? Commented it out for now
-router.get("/feedback", authenticateApiKey, 
-    // authenticateToken, 
-    async (req, res) => {
-    
+const { respondToFeedback } = require('../models/feedback-model');
+
+router.post("/response", authenticateToken, async (req, res) => {
+    const { responseId, leaderResponse } = req.body;
+    if (!responseId || !leaderResponse) {
+        return res.status(400).json({ message: "Response ID and leader response are required." });
+    }
     try {
-        const [rows] = await db.execute("SELECT * FROM feedback");
-        res.json(rows);
+        await respondToFeedback(req, res);
     } catch (error) {
         console.error("Database error:", error);
         res.status(500).json({ message: "Internal server error." });
     }
 });
 
-router.get("/response", authenticateApiKey, 
-    // authenticateToken, 
-    async (req, res) => {
-    
+const { addLeaderResponse } = require('../controllers/feedback-controller');
+
+router.post("/response", authenticateToken, async (req, res) => {
+    const { responseId, leaderResponse } = req.body;
+    if (!responseId || !leaderResponse) {
+        return res.status(400).json({ message: "Response ID and leader response are required." });
+    }
     try {
-        const [rows] = await db.execute("SELECT * FROM responses");
-        //TODO: Add where clause. Leave now for testing.
-        res.json(rows);
+        await addLeaderResponse(responseId, leaderResponse);
+        res.status(200).json({ message: 'Leader response added successfully' });
     } catch (error) {
         console.error("Database error:", error);
         res.status(500).json({ message: "Internal server error." });
     }
 });
+
+
+// GET - Fetch feedback (Protected)
+// Do we need to auth the token here? Commented it out for now
+router.get("/feedback", authenticateApiKey,
+    // authenticateToken, 
+    async (req, res) => {
+
+        try {
+            const [rows] = await db.execute("SELECT * FROM feedback");
+            res.json(rows);
+        } catch (error) {
+            console.error("Database error:", error);
+            res.status(500).json({ message: "Internal server error." });
+        }
+    });
+
+router.get("/response", authenticateApiKey,
+    // authenticateToken, 
+    async (req, res) => {
+
+        try {
+            const [rows] = await db.execute("SELECT * FROM responses");
+            //TODO: Add where clause. Leave now for testing.
+            res.json(rows);
+        } catch (error) {
+            console.error("Database error:", error);
+            res.status(500).json({ message: "Internal server error." });
+        }
+    });
 
 module.exports = router;

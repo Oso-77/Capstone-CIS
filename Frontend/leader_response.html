@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Leader Response Page</title>
+  <!-- jQuery CDN -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <!-- Font Awesome for icons (if needed) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #f0f2f5, #d9e4f5);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      width: 90%;
+      max-width: 1100px;
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      margin-top: 30px;
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 25px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    table th, table td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: left;
+    }
+    table th {
+      background-color: #0078d4;
+      color: #fff;
+    }
+    table tr:hover {
+      background-color: #f5f5f5;
+    }
+    .submit-btn {
+      background-color: #0078d4;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .submit-btn:hover {
+      background-color: #005a9e;
+    }
+    .logout-btn {
+      background-color: #d9534f;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 5px;
+      font-size: 14px;
+      cursor: pointer;
+      float: right;
+    }
+    .logout-btn:hover {
+      background-color: #c9302c;
+    }
+    input.response-input {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      margin: 5px 0;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <button class="logout-btn" id="logoutBtn">Logout</button>
+    <h2>Leader Response Page</h2>
+    <p>
+      Below are the feedback entries. Enter a short response for each entry and click "Submit Response" to address the feedback.
+    </p>
+    <table id="feedbackTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Feedback Type</th>
+          <th>Feelings</th>
+          <th>Blockers</th>
+          <th>Improvements</th>
+          <th>Leader Response</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Feedback rows will be inserted here -->
+      </tbody>
+    </table>
+    <br/>
+    <button class="submit-btn" onclick="window.location.href='/api/dashboard';">Go to Dashboard</button>
+  </div>
+
+  <script>
+    $(document).ready(function () {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("You need to log in to access this page.");
+        window.location.href = '/api/login';
+      }
+
+      // Fetch feedback entries (adjust the URL if needed)
+      $.ajax({
+        type: 'GET',
+        url: '/api/feedback',
+        headers: {
+          "Authorization": `Bearer ${token}`
+        },
+        success: function (response) {
+          $('#feedbackTable tbody').empty();
+          response.forEach(item => {
+            // Adjust the field names if they differ from your database
+            let row = `
+              <tr>
+                <td>${item.entryID}</td>
+                <td>${item.feedback}</td>
+                <td>${item.comment1}</td>
+                <td>${item.comment2}</td>
+                <td>${item.comment3}</td>
+                <td>
+                  <input type="text" class="response-input" id="response-${item.entryID}" placeholder="Enter leader response">
+                </td>
+                <td>
+                  <button class="submit-btn" onclick="submitResponse(${item.entryID})">Submit Response</button>
+                </td>
+              </tr>
+            `;
+            $('#feedbackTable tbody').append(row);
+          });
+        },
+        error: function(xhr) {
+          alert('Error: ' + xhr.responseJSON.message);
+        }
+      });
+
+      // Logout action
+      $('#logoutBtn').click(function () {
+        localStorage.removeItem("token");
+        window.location.href = '/api/login';
+      });
+    });
+
+    // Function to submit leader response for a given feedback entry
+    function submitResponse(entryID) {
+      const token = localStorage.getItem("token");
+      const leaderResponse = $(`#response-${entryID}`).val().trim();
+      if (!leaderResponse) {
+        alert("Please enter a response before submitting.");
+        return;
+      }
+      $.ajax({
+        type: 'POST',
+        url: '/api/response',
+        headers: {
+          "Authorization": `Bearer ${token}`
+        },
+        data: JSON.stringify({ responseId: entryID, leaderResponse: leaderResponse }),
+        contentType: 'application/json; charset=utf-8', dataType: 'json',
+        success: function (res) {
+          alert("Response submitted successfully!");
+          // Optionally, you can update the table row or disable the input.
+        },
+        error: function(xhr) {
+          alert('Error: ' + xhr.responseJSON.message);
+        }
+      });
+    }
+  </script>
+</body>
+</html>

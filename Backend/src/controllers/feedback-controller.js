@@ -22,4 +22,17 @@ const getAllFeedback = async () => {
     });
 };
 
-module.exports = { createFeedback, getAllFeedback };
+// Function to add leader response to feedback
+const addLeaderResponse = async (feedbackId, leaderResponse) => {
+    return new Promise((resolve, reject) => {
+        const query = 'UPDATE feedback SET leader_response = ? WHERE entryID = ?';
+        db.query(query, [leaderResponse, feedbackId], (err, results) => {
+            if (err) return reject(err);
+            resolve(results);
+        });
+    });
+};
+
+
+module.exports = { createFeedback, getAllFeedback, addLeaderResponse };
+
