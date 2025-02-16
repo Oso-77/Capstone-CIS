@@ -2,6 +2,7 @@ import mysql.connector
 from openai import OpenAI
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
+import matplotlib.pyplot as plt
 import os
 
 # Load environment variables from .env file
@@ -25,7 +26,7 @@ def connect_db():
         print(f"Database Connection Failure: {err}")
         return None
 
-# Fetch responses from MySQL
+# Fetch responses to survey from MySQL database.
 def fetch_feedback():
     connection = connect_db()
     if connection:
@@ -69,6 +70,7 @@ def process_feedback():
 
 ##process_feedback()
 
+## Prompt for Categorization of the feedback in gpt_answer_1, gpt_answer_2, gpt_answer_3
 def categorize_with_gpt(combined_text):
     """
     Uses GPT to categorize the combined text into one of the six predefined categories.
@@ -104,6 +106,8 @@ def categorize_with_gpt(combined_text):
     # Strip any extra whitespace from the response.
     return response.choices[0].message.content.strip()
 
+
+## Iterates through database and updates the survey_category column with the appropriate category.
 def categorize_existing_feedback():
     """
     Reads GPT-generated answers (gpt_answer_1, gpt_answer_2, gpt_answer_3) from each row,
@@ -136,4 +140,109 @@ def categorize_existing_feedback():
     connection.commit()
     print("Survey categories updated successfully.")
 
-categorize_existing_feedback()
+
+##categorize_existing_feedback()
+
+
+def fetch_category_counts():
+    connection = connect_db()
+    if connection:
+        cursor = connection.cursor()
+        cursor.execute("SELECT survey_category, COUNT(*) FROM feedback GROUP BY survey_category")
+        return cursor.fetchall()
+    return []
+
+def generate_visuals():
+    category_counts = fetch_category_counts()
+
+    if category_counts:
+        # Data for charts
+        categories = [row[0] for row in category_counts]
+        counts = [row[1] for row in category_counts]
+
+        # Create a figure with 1 row and 2 columns for side-by-side plots
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
+
+        # Pie chart
+        ax1.pie(counts, labels=categories, autopct='%1.1f%%', startangle=140, colors=plt.cm.Paired.colors)
+        ax1.set_title('Category Distribution (Pie Chart)')
+        ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+
+        # Histogram (Bar chart)
+        ax2.bar(categories, counts, color=plt.cm.Paired.colors)
+        ax2.set_xlabel('Categories')
+        ax2.set_ylabel('Count')
+        ax2.set_title('Category Distribution (Bar Chart)')
+        ax2.tick_params(axis='x', rotation=45)
+        ax2.set_yticks(range(0, max(counts) + 1))
+
+        plt.tight_layout()  # Adjust layout to avoid clipping labels
+        plt.savefig('category_side_by_side.png')  # Save the side-by-side chart as an image file
+        plt.show()  # Display the charts side by side
+
+        print("Side-by-side charts saved and displayed successfully.")
+    else:
+        print("No category data available.")
+
+
+##generate_visuals()
+
+def generate_top_level_summary():
+    """
+    Fetches GPT-generated answers and their associated survey categories,
+    combines them into a summary prompt, and uses GPT to produce a concise,
+    bullet-point top-level view of the most prevalent issues (fit for one page).
+    """
+    connection = connect_db()
+    if not connection:
+        print("Database connection error.")
+        return
+
+    cursor = connection.cursor()
+    # Retrieve the relevant columns from the feedback table.
+    cursor.execute("SELECT survey_category, gpt_answer_1, gpt_answer_2, gpt_answer_3 FROM feedback")
+    rows = cursor.fetchall()
+    cursor.close()
+    connection.close()
+    
+    if not rows:
+        print("No feedback data found.")
+        return
+
+    # Combine data from each row into one aggregated text block.
+    combined_text = ""
+    for row in rows:
+        category, ans1, ans2, ans3 = row
+        combined_text += f"Category: {category}\n"
+        combined_text += f"- {ans1}\n"
+        combined_text += f"- {ans2}\n"
+        combined_text += f"- {ans3}\n\n"
+
+    # Construct the prompt for GPT.
+    prompt = (
+        "You are a business consultant summarizing employee feedback. "
+        "Based on the aggregated GPT-generated insights and their categories provided below, "
+        "please provide a concise, bullet-point summary of the most prevalent issues or those that should be addressed first. "
+        "Ensure the summary fits on one page. Return only bullet points.\n\n"
+        f"Feedback Data:\n{combined_text}"
+    )
+
+    # Query GPT to generate the summary.
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",  # Adjust to your preferred model if necessary
+        messages=[
+            {"role": "system", "content": "You are a business consultant that provides concise summaries."},
+            {"role": "user", "content": prompt}
+        ]
+    )
+    summary = response.choices[0].message.content.strip()
+    print("Top-Level Summary:")
+    print(summary)
+
+
+
+
+
+
+
+generate_top_level_summary()
