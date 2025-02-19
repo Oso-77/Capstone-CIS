@@ -144,7 +144,7 @@ router.get("/feedback", authenticateApiKey,
     });
 
 router.get("/response", authenticateApiKey,
-    // authenticateToken, 
+    authenticateToken, 
     async (req, res) => {
 
         try {
