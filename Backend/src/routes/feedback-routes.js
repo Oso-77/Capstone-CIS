@@ -129,10 +129,9 @@ router.post("/response", authenticateToken, async (req, res) => {
 
 // authenticateToken was supposed to require admin privileges bc then anyone with an account
 // could navigate to the route manually with the URL and view all the feedback as a json file...
-// that is kind of broken right now though
 
 router.get("/feedback", authenticateApiKey,
-    // authenticateToken, 
+    authenticateToken, 
     async (req, res) => {
 
         try {
@@ -145,7 +144,7 @@ router.get("/feedback", authenticateApiKey,
     });
 
 router.get("/response", authenticateApiKey,
-    // authenticateToken, 
+    authenticateToken, 
     async (req, res) => {
 
         try {
