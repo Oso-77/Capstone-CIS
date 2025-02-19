@@ -146,7 +146,6 @@ router.get("/feedback", authenticateApiKey,
 router.get("/response", authenticateApiKey,
     authenticateToken, 
     async (req, res) => {
-
         try {
             const [rows] = await db.execute("SELECT * FROM responses");
             //TODO: Add where clause. Leave now for testing.
