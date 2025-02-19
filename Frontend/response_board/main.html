@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Employee Feedback Board</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -119,7 +120,7 @@
 <body>
   <div class="header">
     Employee Feedback Board
-    <a class="login-button" href="http://localhost:3000/api/login">Login</a>
+    <a class="login-button" href="http://localhost:3000/api/login">Go to Form</a>
   </div>
   
   <div id="board" class="board">
@@ -135,77 +136,85 @@
   </div>
 
   <script>
-    // Global variable to store fetched data
-    let issuesData = [];
+    $(document).ready(function () {
+      const token = localStorage.getItem("token");
 
-    // Fetch data from the API
-    async function fetchData() {
-      try {
-        const response = await fetch('http://localhost:3000/api/response'); // Replace with your actual API URL
-        const data = await response.json();
-        issuesData = data; // Store the fetched data
-        renderBoard(issuesData);
-      } catch (error) {
-        console.error('Error fetching data:', error);
+      if (!token) {
+        alert("You need to log in to access this page.");
+        window.location.href = '/api/login';
       }
-    }
+      // Global variable to store fetched data
+      let issuesData = [];
 
-    // Function to render posts on the board
-    function renderBoard(issues) {
-      const board = document.getElementById('board');
-      board.innerHTML = ''; // Clear existing posts
-      
-      issues.forEach(issue => {
-        const post = document.createElement('div');
-        post.classList.add('post');
-        post.innerHTML = `
+      // Fetch data from the API
+      async function fetchData() {
+        try {
+          const response = await fetch('http://localhost:3000/api/response'); // Replace with your actual API URL
+          const data = await response.json();
+          issuesData = data; // Store the fetched data
+          renderBoard(issuesData);
+        } catch (error) {
+          console.error('Error fetching data:', error);
+        }
+      }
+
+      // Function to render posts on the board
+      function renderBoard(issues) {
+        const board = document.getElementById('board');
+        board.innerHTML = ''; // Clear existing posts
+        
+        issues.forEach(issue => {
+          const post = document.createElement('div');
+          post.classList.add('post');
+          post.innerHTML = `
+            <div class="card-header">
+              <h3>${issue.response_text}</h3>
+            </div>
+            <div class="card-body">
+              <p><i>✨ AI Suggestion: ${issue.insight_text}</i></p>
+            </div>
+            <button onclick="handlePostAction(${issue.db_id})">Open Card</button>
+          `;
+          board.appendChild(post);
+        });
+      }
+
+      // Function to open the modal with the issue's details
+      function handlePostAction(id) {
+        // Use the globally stored data
+        const issue = issuesData.find(item => item.db_id === id);
+        if (!issue) return;
+        
+        const modalBody = document.getElementById('modalBody');
+        modalBody.innerHTML = `
           <div class="card-header">
             <h3>${issue.response_text}</h3>
           </div>
           <div class="card-body">
-            <p><i>✨ AI Suggestion: ${issue.insight_text}</i></p>
+            <p>${issue.insight_text}</p>
           </div>
-          <button onclick="handlePostAction(${issue.db_id})">Open Card</button>
         `;
-        board.appendChild(post);
-      });
-    }
-
-    // Function to open the modal with the issue's details
-    function handlePostAction(id) {
-      // Use the globally stored data
-      const issue = issuesData.find(item => item.db_id === id);
-      if (!issue) return;
-      
-      const modalBody = document.getElementById('modalBody');
-      modalBody.innerHTML = `
-        <div class="card-header">
-          <h3>${issue.response_text}</h3>
-        </div>
-        <div class="card-body">
-          <p>${issue.insight_text}</p>
-        </div>
-      `;
-      document.getElementById('modalOverlay').style.display = 'flex';
-    }
-
-    // Function to close the modal
-    function closeModal() {
-      document.getElementById('modalOverlay').style.display = 'none';
-    }
-
-    // Event listener for closing the modal when clicking the close button
-    document.getElementById('modalClose').addEventListener('click', closeModal);
-
-    // Close the modal if user clicks outside the modal-content
-    document.getElementById('modalOverlay').addEventListener('click', function(e) {
-      if (e.target === this) {
-        closeModal();
+        document.getElementById('modalOverlay').style.display = 'flex';
       }
+
+      // Function to close the modal
+      function closeModal() {
+        document.getElementById('modalOverlay').style.display = 'none';
+      }
+
+      // Event listener for closing the modal when clicking the close button
+      document.getElementById('modalClose').addEventListener('click', closeModal);
+
+      // Close the modal if user clicks outside the modal-content
+      document.getElementById('modalOverlay').addEventListener('click', function(e) {
+        if (e.target === this) {
+          closeModal();
+        }
     });
 
     // Fetch data and render the board when the page loads
     fetchData();
+  });
   </script>
 </body>
 </html>
