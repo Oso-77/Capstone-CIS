@@ -1,150 +1,182 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Feedback Form</title>
-	<!-- jQuery for AJAX and interactivity -->
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-	<!-- Font Awesome for icons -->
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-	<!-- Custom CSS -->
-	<style>
-		body {
-			font-family: Arial, sans-serif;
-			background: linear-gradient(135deg, #f0f2f5, #d9e4f5);
-			margin: 0;
-			padding: 0;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			min-height: 100vh;
-		}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Feedback Form</title>
+  <!-- jQuery for AJAX and interactivity -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- Custom CSS -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #f0f2f5, #d9e4f5);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
 
-		.form-container {
-			background-color: #fff;
-			padding: 30px; 
-			border-radius: 12px;
-			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-			width: 100%;
-			max-width: 900px; 
-			margin: 20px;
-		}
+    .form-container {
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 900px;
+      margin: 20px;
+    }
 
-		.form-container h2 {
-			margin-top: 0;
-			color: #333;
-			text-align: center;
-			font-size: 28px; /* Larger font size */
-			margin-bottom: 25px;
-		}
+    .form-container h2 {
+      margin-top: 0;
+      color: #333;
+      text-align: center;
+      font-size: 28px;
+      margin-bottom: 25px;
+    }
 
-		.form-group {
-			margin-bottom: 20px;
-		}
+    .form-group {
+      margin-bottom: 20px;
+    }
 
-		.form-group label {
-			display: block;
-			margin-bottom: 8px;
-			color: #555;
-			font-weight: bold;
-		}
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #555;
+      font-weight: bold;
+    }
 
-		#password, #username {
-			width: 97%;
-			height: 16px;
-			padding: 12px; /* Increased padding */
-			border: 1px solid #ddd;
-			border-radius: 8px;
-			font-size: 14px;
-			resize: none;
-		}
+    #password,
+    #username {
+      width: 97%;
+      height: 16px;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      resize: none;
+    }
 
-		.submit-btn {
-			background-color: #0078d4;
-			color: #fff;
-			border: none;
-			padding: 12px 20px;
-			border-radius: 8px;
-			cursor: pointer;
-			font-size: 16px;
-			width: 100%;
-			transition: background-color 0.3s ease;
-		}
+    .submit-btn {
+      background-color: #0078d4;
+      color: #fff;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      width: 100%;
+      transition: background-color 0.3s ease;
+    }
 
-		.submit-btn:hover {
-			background-color: #005a9e;
-		}
-
-
-	</style>
+    .submit-btn:hover {
+      background-color: #005a9e;
+    }
+  </style>
 </head>
 <body>
-    <div class="form-container">
-        <h2>Login</h2>
-        <form id="loginForm">
-            <!-- Username Field -->
-            <div class="form-group">
-                <label for="username">Username:</label>
-                <input type="text" id="username" name="username" placeholder="Enter your username">
-            </div>
+  <div class="form-container">
+    <h2>Login</h2>
+    <form id="loginForm">
+      <!-- Username Field -->
+      <div class="form-group">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" placeholder="Enter your username">
+      </div>
 
-            <!-- Password Field -->
-            <div class="form-group">
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" placeholder="Enter your password">
-            </div>
+      <!-- Password Field -->
+      <div class="form-group">
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" placeholder="Enter your password">
+      </div>
 
-            <!-- Submit Button -->
-            <button type="submit" class="submit-btn">Login</button>
-			<button type="button" class="submit-btn" onclick="window.location.href='/api/form';" style="margin-top: 10px; background-color: #6c757d;">
-				Return to Form
-			</button>
-        </form>
-    </div>
+      <!-- Submit Button -->
+      <button type="submit" class="submit-btn">Login</button>
+      <button type="button" class="submit-btn" onclick="window.location.href='/api/main';" style="margin-top: 10px; background-color: #6c757d;">
+        Return to Cards
+      </button>
+    </form>
+  </div>
 
-	<script type="text/javascript">
+  <script type="text/javascript">
+    $(document).ready(function () {
+      const token = localStorage.getItem("token");
 
-		$(document).ready(function () {
-			const token = localStorage.getItem("token");  
+      if (token) {
+        $.ajax({
+          type: 'GET',
+          url: '/api/check-admin',
+          headers: {
+            "Authorization": `Bearer ${token}`
+          },
+          success: function (response) {
+            if (response.isAdmin) {
+              window.location.href = '/api/leader-response';
+            } else {
+              window.location.href = '/api/form';
+            }
+          },
+          error: function (xhr) {
+            alert('Error occurred: ' + xhr.responseJSON.message);
+            localStorage.removeItem("token");
+            window.location.href = '/api/login'; // Redirect to login if there's an error
+          }
+        });
+      }
+    });
 
-			if (token) {
-				window.location.href = '/api/dashboard';  
-			}
-		});
+    $('#loginForm').on('submit', function (e) {
+      e.preventDefault();
 
-		$('#loginForm').on('submit', function(e) {
-			e.preventDefault();  
+      const username = $('#username').val().trim();
+      const password = $('#password').val().trim();
 
-			const username = $('#username').val().trim();  
-			const password = $('#password').val().trim();  
+      // Basic form validation
+      if (!username || !password) {
+        alert('Please enter both username and password');
+        return;
+      }
 
-			// Basic form validation
-			if (!username || !password) {
-				alert('Please enter both username and password');
-				return;
-			}
+      // Send data to the server using AJAX
+      $.ajax({
+        type: 'POST',
+        url: '/api/login',
+        data: JSON.stringify({ username: username, password: password }),
+        contentType: 'application/json; charset=utf-8',
+        dataType: 'json',
+        success: function (response) {
+          if (response.token) {
+            localStorage.setItem("token", response.token);
 
-			// Send data to the server using AJAX
-			$.ajax({
-				type: 'POST',
-				url: '/api/login', 
-				data: JSON.stringify({ username: username, password: password }),
-				contentType: 'application/json; charset=utf-8',
-				dataType: 'json',
-				success: function(response) {
-					if (response.token) {
-						localStorage.setItem("token", response.token);  
-						window.location.href = '/api/dashboard';  
-					} else {
-						alert('Invalid username or password.');
-					}
-				},
-				error: function(xhr, status, error) {
-					alert('Error occurred: ' + xhr.responseJSON.message);  
-				}
-			});
-		});
-	</script>
+            $.ajax({
+              type: 'GET',
+              url: '/api/check-admin',
+              headers: { Authorization: `Bearer ${response.token}` },
+              success: function (adminResponse) {
+                if (adminResponse.isAdmin) {
+                  window.location.href = '/api/leader-response';  // Admin page
+                } else {
+                  window.location.href = '/api/form';   // Navigates to form if account is not admin
+                }
+              },
+              error: function () {
+                alert("Error checking admin status.");
+                window.location.href = '/api/form';  // Default to form page if error
+              }
+            });
+          } else {
+            alert('Invalid username or password.');
+          }
+        },
+        error: function (xhr) {
+          alert('Error occurred: ' + xhr.responseJSON.message);
+        }
+      });
+    });
+  </script>
 </body>
 </html>

@@ -19,6 +19,7 @@
       align-items: center;
       min-height: 100vh;
     }
+
     .container {
       width: 90%;
       max-width: 1100px;
@@ -28,28 +29,34 @@
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
       margin-top: 30px;
     }
+
     h2 {
       text-align: center;
       color: #333;
       margin-bottom: 25px;
     }
+
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
     }
+
     table th, table td {
       border: 1px solid #ddd;
       padding: 12px;
       text-align: left;
     }
+
     table th {
       background-color: #0078d4;
       color: #fff;
     }
+
     table tr:hover {
       background-color: #f5f5f5;
     }
+
     .submit-btn {
       background-color: #0078d4;
       color: #fff;
@@ -59,9 +66,11 @@
       cursor: pointer;
       font-size: 14px;
     }
+
     .submit-btn:hover {
       background-color: #005a9e;
     }
+
     .logout-btn {
       background-color: #d9534f;
       color: white;
@@ -72,9 +81,11 @@
       cursor: pointer;
       float: right;
     }
+
     .logout-btn:hover {
       background-color: #c9302c;
     }
+
     input.response-input {
       width: 100%;
       padding: 10px;
@@ -110,7 +121,7 @@
         <!-- Feedback rows will be inserted here -->
       </tbody>
     </table>
-    <br/>
+    <br />
     <button class="submit-btn" onclick="window.location.href='/api/dashboard';">Go to Dashboard</button>
   </div>
 
@@ -122,7 +133,37 @@
         window.location.href = '/api/login';
       }
 
-      // Fetch feedback entries (adjust the URL if needed)
+      // Check if the user is an admin
+      $.ajax({
+        type: 'GET',
+        url: '/api/check-admin',
+        headers: {
+          "Authorization": `Bearer ${token}`
+        },
+        success: function (response) {
+          if (response.isAdmin) {
+            // If the user is an admin, fetch the feedback entries
+            fetchFeedbackEntries(token);
+          } else {
+            // If the user is not an admin, redirect them to the login page
+            alert("You are not authorized to access this page.");
+            window.location.href = '/api/login';
+          }
+        },
+        error: function (xhr) {
+          alert('Error: ' + xhr.responseJSON.message);
+        }
+      });
+
+      // Logout action
+      $('#logoutBtn').click(function () {
+        localStorage.removeItem("token");
+        window.location.href = '/api/login';
+      });
+    });
+
+    // Function to fetch feedback entries
+    function fetchFeedbackEntries(token) {
       $.ajax({
         type: 'GET',
         url: '/api/feedback',
@@ -132,7 +173,6 @@
         success: function (response) {
           $('#feedbackTable tbody').empty();
           response.forEach(item => {
-            // Adjust the field names if they differ from your database
             let row = `
               <tr>
                 <td>${item.entryID}</td>
@@ -151,17 +191,11 @@
             $('#feedbackTable tbody').append(row);
           });
         },
-        error: function(xhr) {
+        error: function (xhr) {
           alert('Error: ' + xhr.responseJSON.message);
         }
       });
-
-      // Logout action
-      $('#logoutBtn').click(function () {
-        localStorage.removeItem("token");
-        window.location.href = '/api/login';
-      });
-    });
+    }
 
     // Function to submit leader response for a given feedback entry
     function submitResponse(entryID) {
@@ -178,12 +212,12 @@
           "Authorization": `Bearer ${token}`
         },
         data: JSON.stringify({ responseId: entryID, leaderResponse: leaderResponse }),
-        contentType: 'application/json; charset=utf-8', dataType: 'json',
-        success: function (res) {
+        contentType: 'application/json; charset=utf-8',
+        dataType: 'json',
+        success: function () {
           alert("Response submitted successfully!");
-          // Optionally, you can update the table row or disable the input.
         },
-        error: function(xhr) {
+        error: function (xhr) {
           alert('Error: ' + xhr.responseJSON.message);
         }
       });

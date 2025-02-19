@@ -41,7 +41,7 @@ def generate_insights(feedback):
     response = client.chat.completions.create(
         model="gpt-4o-mini",  # Most cost effective model currently 2/7/25
         messages=[
-            {"role": "system", "content": "You are helpful assistant that is goingt to take user feedback and provide actionable insights based on employee feedback."},
+            {"role": "system", "content": "You are a helpful assistant that is going to take user feedback and provide actionable insights based on employee feedback."},
             {"role": "user", "content": f"Provide 1 actionable insight for: {feedback} to keep things simple keep your resonses strictly to text as they will be stored in a database."}
         ]
     )

@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken')
 
 dotenv.config();
 
+// Token required to access pages beyond the login screen
 const authenticateToken = (req, res, next) => {
     const token = req.header("Authorization") && req.header("Authorization").split(' ')[1];
 
@@ -13,6 +14,7 @@ const authenticateToken = (req, res, next) => {
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         req.user = decoded;
+        console.log(decoded)
         next();
     } catch (error) {
         res.status(400).json({ message: "Invalid token." });

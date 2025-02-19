@@ -58,6 +58,11 @@ router.post('/login', async (req, res) => {
     }
 });
 
+// Using the authenticateToken middleware to automatically handle token validation -> checking if user is an admin
+router.get('/check-admin', authenticateToken, async (req, res) => {
+    res.json({ isAdmin: req.user.isAdmin });
+});
+
 
 router.get('/dashboard', authenticateApiKey, (req, res) => {
     res.sendFile(path.join(__dirname + '../../../../Frontend', 'dashboard.html'));
@@ -121,6 +126,11 @@ router.post("/response", authenticateToken, async (req, res) => {
 
 // GET - Fetch feedback (Protected)
 // Do we need to auth the token here? Commented it out for now
+
+// authenticateToken was supposed to require admin privileges bc then anyone with an account
+// could navigate to the route manually with the URL and view all the feedback as a json file...
+// that is kind of broken right now though
+
 router.get("/feedback", authenticateApiKey,
     // authenticateToken, 
     async (req, res) => {

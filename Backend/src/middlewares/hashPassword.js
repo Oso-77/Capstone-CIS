@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs');
 
 // Function to hash a password
 async function hashPassword() {
-    const plainTextPassword = 'adminPassword';  
+    const plainTextPassword = 'regPassword';  
 
     const saltRounds = 10; 
 
