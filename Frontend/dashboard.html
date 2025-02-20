@@ -100,29 +100,30 @@
   </style>
 </head>
 <body>
-  <div class="form-container">
-    <h2>Dashboard</h2>
-    <h3>Feedback Results</h3>
-    <button class="logout-btn" id="logoutBtn">Logout</button>
-    <button class="submit-btn" onclick="window.location.href='/api/leader-response';">Go to Leader Responses</button>
-    <table id="feedbackTable">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Feedback</th>
-          <th>Feelings</th>
-          <th>Blockers</th>
-          <th>Improvements</th>
-          <th>GPT Answer 1</th>
-          <th>GPT Answer 2</th>
-          <th>GPT Answer 3</th>
-          <th>Leader Response</th>
-        </tr>
-      </thead>
-      <tbody>
-      </tbody>
-    </table>
-  </div>
+    <div class="form-container">
+        <h2>Dashboard</h2>
+        <h3>Feedback Results</h3>
+        <button class="logout-btn" id="logoutBtn">Logout</button>
+        <button class="submit-btn" onclick="window.location.href='/api/leader-response';">Go to Leader Responses</button>
+        <button class="submit-btn" onclick="window.location.href = '/api/engagement-metrics';">Go to Engagement Metrics</button>
+        <table id="feedbackTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Feedback</th>
+                    <th>Feelings</th>
+                    <th>Blockers</th>
+                    <th>Improvements</th>
+                    <th>GPT Answer 1</th>
+                    <th>GPT Answer 2</th>
+                    <th>GPT Answer 3</th>
+                    <th>Leader Response</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
 
   <script type="text/javascript">
     $(document).ready(function () {

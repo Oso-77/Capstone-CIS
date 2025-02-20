@@ -23,6 +23,11 @@ router.get('/leader-response', (req, res) => {
     res.sendFile(path.join(__dirname, '../../../Frontend', 'leader_response.html'));
 });
 
+router.get('/engagement-metrics', (req, res) => {
+    res.sendFile(path.join(__dirname, '../../../Frontend', 'engagement_metrics.html'));
+});
+
+
 router.post('/login', async (req, res) => {
     const { username, password } = req.body;
 
@@ -155,5 +160,59 @@ router.get("/response", authenticateApiKey,
             res.status(500).json({ message: "Internal server error." });
         }
     });
+
+// GET - Engagement metrics
+router.get("/metrics", authenticateToken, async (req, res) => {
+    try {
+        const { start, end } = req.query;
+
+        let query = "SELECT survey_category, COUNT(*) AS count FROM feedback";
+        let params = [];
+
+        if (start && end) {
+            query += " WHERE received_at BETWEEN ? AND ? ";
+            params.push(start, end);
+        } else if (start) {
+            query += " WHERE received_at >= ? ";
+            params.push(start);
+        } else if (end) {
+            query += " WHERE received_at <= ? ";
+            params.push(end);
+        }
+
+        query += " GROUP BY survey_category";
+
+        // Get total count separately
+        let totalCountQuery = "SELECT COUNT(*) AS totalCount FROM feedback";
+        let totalCountParams = [];
+
+        if (start && end) {
+            totalCountQuery += " WHERE received_at BETWEEN ? AND ? ";
+            totalCountParams.push(start, end);
+        } else if (start) {
+            totalCountQuery += " WHERE received_at >= ? ";
+            totalCountParams.push(start);
+        } else if (end) {
+            totalCountQuery += " WHERE received_at <= ? ";
+            totalCountParams.push(end);
+        }
+
+        const [catRows] = await db.execute(query, params);
+        const [countRows] = await db.execute(totalCountQuery, totalCountParams);
+
+        const categories = catRows.map(row => ({
+            categoryName: row.survey_category || "Uncategorized",
+            count: row.count
+        }));
+
+        res.json({
+            totalCount: countRows[0].totalCount,
+            categories
+        });
+    } catch (error) {
+        console.error("Metrics error:", error);
+        res.status(500).json({ message: "Internal server error." });
+    }
+});
 
 module.exports = router;

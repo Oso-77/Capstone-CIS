@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Engagement Metrics</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #f0f2f5, #d9e4f5);
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .container {
+      width: 90%;
+      max-width: 1000px;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      margin-top: 20px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    h2 {
+      margin: 0;
+    }
+    .btn {
+      background-color: #0078d4;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+    .btn:hover {
+      background-color: #005a9e;
+    }
+    .logout-btn {
+      background-color: #d9534f;
+      margin-left: auto;
+    }
+    .filter-container {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+    .filter-container label {
+      font-weight: bold;
+    }
+    #metricsInfo {
+      margin: 20px 0;
+    }
+    /* Chart container */
+    #chartContainer {
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2>Engagement Metrics</h2>
+      <button class="btn logout-btn" id="logoutBtn">Logout</button>
+    </div>
+    
+    <!-- Buttons to other pages -->
+    <div>
+      <button class="btn" onclick="window.location.href='/api/main'">Employee Feedback Board</button>
+      <button class="btn" onclick="window.location.href='/api/leader-response'">Leader Response Page</button>
+    </div>
+
+    <!-- Date range filter -->
+    <div class="filter-container">
+      <label for="startDate">Start Date:</label>
+      <input type="date" id="startDate" />
+      <label for="endDate">End Date:</label>
+      <input type="date" id="endDate" />
+      <button class="btn" id="filterBtn">Filter</button>
+    </div>
+
+    <!-- Metrics Info -->
+    <div id="metricsInfo">
+      <!-- Will display total feedback count, category breakdown, etc. -->
+    </div>
+
+    <!-- Chart Container -->
+    <div id="chartContainer">
+      <canvas id="categoryChart"></canvas>
+    </div>
+  </div>
+
+  <script>
+    let categoryChart; // We'll store our Chart.js instance here
+
+    $(document).ready(function () {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("You need to log in to access Engagement Metrics.");
+        window.location.href = '/api/login';
+      }
+
+      // Logout handler
+      $('#logoutBtn').click(function () {
+        localStorage.removeItem("token");
+        window.location.href = '/api/login';
+      });
+
+      // Fetch initial metrics (no date range)
+      fetchMetrics();
+
+      // Filter button
+      $('#filterBtn').on('click', function() {
+        const start = $('#startDate').val();
+        const end = $('#endDate').val();
+        fetchMetrics(start, end);
+      });
+    });
+
+    function fetchMetrics(startDate = '', endDate = '') {
+      const token = localStorage.getItem("token");
+      $.ajax({
+        type: 'GET',
+        url: `/api/metrics?start=${startDate}&end=${endDate}`,
+        headers: {
+          "Authorization": `Bearer ${token}`
+        },
+        success: function (data) {
+          // data should have { totalCount, categories: [{ categoryName, count }, ...] }
+          displayMetrics(data);
+          renderCategoryChart(data.categories);
+        },
+        error: function(xhr) {
+          alert('Error: ' + xhr.responseJSON?.message || 'Failed to fetch metrics');
+        }
+      });
+    }
+
+    function displayMetrics(data) {
+      const infoDiv = $('#metricsInfo');
+      infoDiv.empty();
+      infoDiv.append(`<p><strong>Total Feedback:</strong> ${data.totalCount}</p>`);
+      data.categories.forEach(cat => {
+        infoDiv.append(`<p>${cat.categoryName}: ${cat.count}</p>`);
+      });
+    }
+
+    function renderCategoryChart(categoriesData) {
+      // If we already have a chart, destroy it before creating a new one
+      if (categoryChart) {
+        categoryChart.destroy();
+      }
+
+      const ctx = document.getElementById('categoryChart').getContext('2d');
+      const labels = categoriesData.map(item => item.categoryName);
+      const counts = categoriesData.map(item => item.count);
+
+      categoryChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Category Distribution',
+            data: counts,
+            backgroundColor: [
+              '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'
+            ]
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: 'Category Distribution (Pie Chart)'
+            }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
