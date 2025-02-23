@@ -79,6 +79,11 @@ router.get('/main', authenticateApiKey, (req, res) => {
 
 });
 
+router.get('/board', authenticateApiKey, (req, res) => {
+    res.sendFile(path.join(__dirname + '../../../../Frontend', 'board.html'));
+
+});
+
 // POST - Submit feedback
 router.post("/feedback", authenticateApiKey, async (req, res) => {
     const { feedback, comment1, comment2, comment3 } = req.body;
@@ -112,21 +117,7 @@ router.post("/response", authenticateToken, async (req, res) => {
     }
 });
 
-const { addLeaderResponse } = require('../controllers/feedback-controller');
 
-router.post("/response", authenticateToken, async (req, res) => {
-    const { responseId, leaderResponse } = req.body;
-    if (!responseId || !leaderResponse) {
-        return res.status(400).json({ message: "Response ID and leader response are required." });
-    }
-    try {
-        await addLeaderResponse(responseId, leaderResponse);
-        res.status(200).json({ message: 'Leader response added successfully' });
-    } catch (error) {
-        console.error("Database error:", error);
-        res.status(500).json({ message: "Internal server error." });
-    }
-});
 
 
 // GET - Fetch feedback (Protected)
@@ -214,5 +205,42 @@ router.get("/metrics", authenticateToken, async (req, res) => {
         res.status(500).json({ message: "Internal server error." });
     }
 });
+
+router.post("/posts", authenticateToken, async (req, res) => {
+    const { db_id, post_title, post_body } = req.body;
+
+    if (!db_id || !post_title || !post_body) {
+        return res.status(400).json({ message: "DB ID, title, and body are required." });
+    }
+
+    try {
+        const sql = "INSERT INTO posts (db_id, post_title, post_body) VALUES (?, ?, ?)";
+        const [result] = await db.execute(sql, [db_id, post_title, post_body]);
+
+        console.log('Insert result:', result);
+
+        res.status(201).json({ message: "Post created successfully", postId: result.insertId });
+    } catch (error) {
+        console.error("Database error:", error);
+        res.status(500).json({ message: `Internal server error: ${error.message}` }); 
+    }
+});
+
+
+router.get("/posts", authenticateApiKey, authenticateToken, async (req, res) => {
+    try {
+
+        const [rows] = await db.execute("SELECT * FROM posts ORDER BY created_at DESC");
+        res.json(rows);
+    } catch (error) {
+        console.error("Database error:", error);
+        res.status(500).json({ message: "Internal server error." });
+    }
+});
+
+
+
+
+
 
 module.exports = router;

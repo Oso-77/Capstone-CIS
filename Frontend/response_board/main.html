@@ -6,86 +6,100 @@
   <title>Employee Feedback Board</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f0f0f0;
+      font-family: "Segoe UI", sans-serif;
+      background-color: #f8f9fa;
       margin: 0;
       padding: 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
     }
+
     .header {
       font-size: 2.5rem;
       font-weight: bold;
-      margin-bottom: 20px;
-      color: #333;
-      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
-      letter-spacing: 1px;
-      width: 100%;
+      color: #222;
       text-align: center;
+      margin-bottom: 40px;
+      padding: 20px;
+      padding-top: 0px;
+      width: 100%;
       position: relative;
+      background-color: #007bff;
+      color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
+
+    .header .header-title {
+      font-size: 2.5rem;
+      margin-bottom: 15px;
+    }
+
+    .header-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 10px;
+    }
+
     .login-button {
       position: absolute;
-      top: 10px;
-      right: 10px;
-      background-color: #0073e6;
-      color: white;
-      padding: 8px 16px;
+      top: 15px;
+      right: 20px;
+      background-color: #ffffff;
+      color: #007bff;
+      padding: 10px 20px;
       border: none;
-      border-radius: 4px;
+      border-radius: 6px;
       text-decoration: none;
       font-size: 1rem;
+      transition: background 0.3s;
     }
+
     .login-button:hover {
-      background-color: #005bb5;
+      background-color: #e6f0ff;
     }
+
+    .logout-btn, .submit-btn {
+      background-color: #ffffff;
+      color: #007bff;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .logout-btn:hover, .submit-btn:hover {
+      background-color: #e6f0ff;
+    }
+
     .board {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
       gap: 20px;
       max-width: 1200px;
       width: 100%;
+      padding-top: 20px;
     }
+
     .post {
-      background-color: #fff;
+      background: white;
       padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
       display: flex;
       flex-direction: column;
       min-height: 250px;
     }
-    .card-header {
-      min-height: 60px;
+
+    .post h3 {
       margin-bottom: 10px;
+      color: #333;
     }
-    .card-header h3 {
-      margin: 0;
-      color: #0073e6;
-    }
-    .card-body {
-      flex-grow: 1;
-    }
-    .card-body p {
-      font-size: 1rem;
-      color: #555;
-      margin: 0;
-    }
-    .post button {
-      margin-top: 10px;
-      padding: 8px 16px;
-      background-color: #0073e6;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      align-self: flex-start;
-    }
-    .post button:hover {
-      background-color: #005bb5;
-    }
-    /* Modal styles */
+
     .modal-overlay {
       display: none;
       position: fixed;
@@ -93,20 +107,25 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background-color: rgba(0,0,0,0.5);
+      background: rgba(0, 0, 0, 0.6);
       align-items: center;
       justify-content: center;
       z-index: 1000;
     }
+
     .modal-content {
-      background-color: #fff;
-      padding: 20px;
-      border-radius: 8px;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
       max-width: 500px;
       width: 90%;
       position: relative;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
     }
+
     .modal-close {
       position: absolute;
       top: 10px;
@@ -114,110 +133,165 @@
       font-size: 24px;
       cursor: pointer;
     }
+
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    button {
+      background-color: #0078d4;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s;
+      font-size: 1rem;
+    }
+
+    button:hover {
+      background-color: #005a9e;
+    }
+
+    .logout-btn {
+      background-color: #d9534f;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: background-color 0.3s;
+    }
+
+    .logout-btn:hover {
+      background-color: #c9302c;
+    }
   </style>
 </head>
 <body>
   <div class="header">
-    Employee Feedback Board
-    <a class="login-button" href="http://localhost:3000/api/login">Go to Form</a>
+    <div class="header-title">Respond to Employee Issues</div>
+    <div class="header-buttons">
+      <button class="submit-btn" onclick="window.location.href='/api/board';">View Main Board</button>
+      <button class="submit-btn" onclick="window.location.href = '/api/engagement-metrics';">Go to Engagement Metrics</button>
+    </div>
+    <button class="logout-btn" id="logoutBtn">Logout</button>
   </div>
   
-  <div id="board" class="board">
-    <!-- Posts will be dynamically inserted here -->
-  </div>
+  <div id="board" class="board"></div>
 
-  <!-- Modal for showing a card in the center of the screen -->
   <div id="modalOverlay" class="modal-overlay">
     <div class="modal-content">
       <span id="modalClose" class="modal-close">&times;</span>
-      <div id="modalBody"></div>
+      <h3>Create a Post</h3>
+      <input type="text" id="postTitle" placeholder="Post Title" />
+      <textarea id="postBody" placeholder="Write your post here..."></textarea>
+      <button id="submitPost">Submit Post</button>
     </div>
   </div>
 
   <script>
-    // Global variable to store fetched data
     let issuesData = [];
-  
-    // Fetch data from the API
+    let currentDbId = null;
+
     async function fetchData() {
       try {
         const token = localStorage.getItem("token");
-  
         if (!token) {
           alert("You need to log in to access this page.");
           window.location.href = '/api/login';
         }
-  
         const response = await fetch('http://localhost:3000/api/response', {
           method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+          headers: { 'Authorization': `Bearer ${token}` },
+          mode: 'cors'
         });
         const data = await response.json();
-        issuesData = data; // Store the fetched data
+        issuesData = data;
         renderBoard(issuesData);
       } catch (error) {
         console.error('Error fetching data:', error);
       }
     }
-  
-    // Function to render posts on the board
+
     function renderBoard(issues) {
       const board = document.getElementById('board');
-      board.innerHTML = ''; // Clear existing posts
-  
+      board.innerHTML = '';
       issues.forEach(issue => {
         const post = document.createElement('div');
         post.classList.add('post');
         post.innerHTML = `
-          <div class="card-header">
-            <h3>${issue.response_text}</h3>
-          </div>
-          <div class="card-body">
-            <p><i>✨ AI Suggestion: ${issue.insight_text}</i></p>
-          </div>
-          <button onclick="handlePostAction(${issue.db_id})">Open Card</button>
+          <h3>${issue.response_text}</h3>
+          <p><i>✨ AI Suggestion: ${issue.insight_text}</i></p>
+          <button onclick="handlePostAction(${issue.db_id})">Create a post</button>
         `;
         board.appendChild(post);
       });
     }
-  
-    // Function to open the modal with the issue's details
+
     function handlePostAction(id) {
-      // Use the globally stored data
+      currentDbId = id;
       const issue = issuesData.find(item => item.db_id === id);
       if (!issue) return;
-  
-      const modalBody = document.getElementById('modalBody');
-      modalBody.innerHTML = `
-        <div class="card-header">
-          <h3>${issue.response_text}</h3>
-        </div>
-        <div class="card-body">
-          <p>${issue.insight_text}</p>
-        </div>
-      `;
       document.getElementById('modalOverlay').style.display = 'flex';
     }
-  
-    // Function to close the modal
+
+    async function submitPost() {
+      const title = document.getElementById('postTitle').value;
+      const body = document.getElementById('postBody').value;
+      if (!title || !body) {
+        alert('Title and body are required!');
+        return;
+      }
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("You need to log in to submit a post.");
+        return;
+      }
+
+      try {
+        const response = await fetch('http://localhost:3000/api/posts', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ db_id: currentDbId, post_title: title, post_body: body })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          alert('Post created successfully!');
+          closeModal();
+        } else {
+          alert(`Error creating post: ${data.message}`);
+          console.error('Error details:', data);
+        }
+      } catch (error) {
+        console.error('Error submitting post:', error);
+      }
+    }
+
     function closeModal() {
       document.getElementById('modalOverlay').style.display = 'none';
     }
-  
-    // Event listener for closing the modal when clicking the close button
+
     document.getElementById('modalClose').addEventListener('click', closeModal);
-  
-    // Close the modal if user clicks outside the modal-content
-    document.getElementById('modalOverlay').addEventListener('click', function(e) {
-      if (e.target === this) {
-        closeModal();
-      }
-    });
-  
-    // Fetch data and render the board when the page loads
+    document.getElementById('submitPost').addEventListener('click', submitPost);
     fetchData();
-  </script>  
+  </script>
 </body>
 </html>
