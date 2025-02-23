@@ -2,6 +2,7 @@ import mysql.connector
 from openai import OpenAI
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
+import json
 import matplotlib.pyplot as plt
 import os
 
@@ -31,7 +32,11 @@ def fetch_feedback():
     connection = connect_db()
     if connection:
         cursor = connection.cursor()
-        cursor.execute("SELECT entryID, comment1, comment2, comment3 FROM feedback")
+        cursor.execute("""
+            SELECT entryID, comment1, comment2, comment3 
+            FROM feedback 
+            WHERE gpt_answer_1 IS NULL OR gpt_answer_2 IS NULL OR gpt_answer_3 IS NULL
+        """)
         return cursor.fetchall()
 
 # Generate actionable insights from OpenAI(ChatGPT) for a given feedback.
@@ -41,7 +46,7 @@ def generate_insights(feedback):
     response = client.chat.completions.create(
         model="gpt-4o-mini",  # Most cost effective model currently 2/7/25
         messages=[
-            {"role": "system", "content": "You are a helpful assistant that is going to take user feedback and provide actionable insights based on employee feedback."},
+            {"role": "system", "content": "You are a helpful assistant that is going to take user feedback and provide actionable insights based on employee feedback.If the feedback is gibberish, nonsensical, too short, or otherwise invalid, respond with 'Invalid Feedback'."},
             {"role": "user", "content": f"Provide 1 actionable insight for: {feedback} to keep things simple keep your resonses strictly to text as they will be stored in a database."}
         ]
     )
@@ -82,6 +87,7 @@ def categorize_with_gpt(combined_text):
       - Tools/Technology: Covers the availability, quality, and efficiency of the tools, software, hardware, and resources employees use to perform their jobs. Issues in this category may include outdated systems, lack of automation, or inadequate support.
       - Training/Development: Focuses on opportunities for employees to enhance their skills, knowledge, and career growth through training programs, mentorship, and professional development initiatives. It also includes access to learning resources and career advancement paths.
       - Processes/Procedures: Involves the effectiveness and efficiency of company workflows, policies, and standard operating procedures (SOPs). This includes how tasks are structured, communication flows, and whether processes support productivity or create unnecessary bottlenecks.
+      - Invalid (for feedback that is gibberish, nonsensical, or not relevant.)
     
     Returns the category name as a string.
     """
@@ -89,7 +95,7 @@ def categorize_with_gpt(combined_text):
         f"Given the following feedback: \"{combined_text}\", "
         "please choose the best category from the following options: "
         "'Work Environment', 'Job Satisfaction', 'Management/Leadership', "
-        "'Tools/Technology', 'Training/Development', 'Processes/Procedures'. "
+        "'Tools/Technology', 'Training/Development', 'Processes/Procedures', 'Invalid'. "
         "Return only the category name exactly as written."
     )
     
@@ -242,7 +248,132 @@ def generate_top_level_summary():
 
 
 
+def generate_cards():
+    """
+    Aggregates all GPT answers from the feedback table,
+    asks GPT to identify 3-7 top-level issues or trends,
+    and stores each trend as (response_text, insight_text, category) in the responses table.
+    
+    The Category must be one of the following:
+      - Work Environment
+      - Job Satisfaction
+      - Management/Leadership
+      - Tools/Technology
+      - Training/Development
+      - Processes/Procedures
+      - Invalid
+    """
+    connection = connect_db()
+    if not connection:
+        print("Database connection error.")
+        return
+
+    cursor = connection.cursor()
+
+    try:
+        # 1) Gather all GPT answers from the feedback table
+        cursor.execute("SELECT gpt_answer_1, gpt_answer_2, gpt_answer_3 FROM feedback")
+        rows = cursor.fetchall()
+        
+        # Combine all answers into a single text block
+        all_feedback = []
+        for ans1, ans2, ans3 in rows:
+            # Only keep non-empty strings
+            feedback_parts = [ans for ans in (ans1, ans2, ans3) if ans]
+            if feedback_parts:
+                # Merge them into one line per row
+                all_feedback.append(" ".join(feedback_parts))
+        
+        if not all_feedback:
+            print("No feedback available to analyze.")
+            return
+
+        # 2) Create one big chunk of text representing all feedback
+        combined_feedback = "\n".join(all_feedback)
+
+        # 3) Prompt GPT to identify 3-7 critical or repeating issues
+        prompt = (
+            "You have the complete set of employee feedback. Identify the 3-7 most critical or repeating issues. "
+            "For each issue, provide:\n"
+            "- Title: A concise, one-sentence summary of the problem.\n"
+            "- Insight: Exactly three sentences of actionable recommendations.\n"
+            "- Category: One category from the following list:\n"
+            "  'Work Environment', 'Job Satisfaction', 'Management/Leadership', 'Tools/Technology',\n"
+            "  'Training/Development', 'Processes/Procedures', 'Invalid'.\n\n"
+            "Return each issue in the exact format:\n"
+            "Title: <Problem Statement>\n"
+            "Insight: <Three-sentence Recommendation>\n"
+            "Category: <One Category from the list above>\n\n"
+            "No additional text or formatting.\n\n"
+            f"All Feedback:\n{combined_feedback}"
+        )
+
+        # Use your OpenAI client (note 'client' instead of 'openai' if you created an OpenAI instance)
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",  # or whichever model you prefer
+            messages=[
+                {
+                    "role": "system", 
+                    "content": "You analyze aggregated employee feedback and provide concise, actionable trends."
+                },
+                {"role": "user", "content": prompt}
+            ]
+        )
+
+        response_text = response.choices[0].message.content.strip()
+
+        # 4) Parse the GPT output
+        lines = [line.strip() for line in response_text.split("\n") if line.strip()]
+
+        # We'll store up to 7 total (Title, Insight, Category) triples
+        # GPT might have them in groups of three lines per issue:
+        #   Title: ...
+        #   Insight: ...
+        #   Category: ...
+        # We'll parse accordingly.
+        
+        card_data = []
+        current_title = None
+        current_insight = None
+        current_category = None
+
+        for line in lines:
+            # Check for "Title:"
+            if line.lower().startswith("title:"):
+                # If there's a complete set from the previous iteration, store it
+                if current_title and current_insight and current_category:
+                    card_data.append((current_title, current_insight, current_category))
+                # Start a new set
+                current_title = line.split(":", 1)[1].strip()
+                current_insight = None
+                current_category = None
+
+            # Check for "Insight:"
+            elif line.lower().startswith("insight:"):
+                current_insight = line.split(":", 1)[1].strip()
+
+            # Check for "Category:"
+            elif line.lower().startswith("category:"):
+                current_category = line.split(":", 1)[1].strip()
+
+        # Add the last parsed entry
+        if current_title and current_insight and current_category:
+            card_data.append((current_title, current_insight, current_category))
+
+        # 5) Store results in the database
+        cursor.executemany(
+            "INSERT INTO responses (response_text, insight_text, survey_category) VALUES (%s, %s, %s)",
+            card_data
+        )
+        connection.commit()
+        print(f"{len(card_data)} trends inserted into responses table.")
+
+    except Exception as e:
+        print(f"Error: {e}")
+    
+    finally:
+        cursor.close()
+        connection.close()
 
 
-
-generate_top_level_summary()
+generate_cards()
