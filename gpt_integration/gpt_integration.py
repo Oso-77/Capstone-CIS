@@ -42,15 +42,15 @@ def fetch_feedback():
     return results
 
 
-# Generate actionable insights from OpenAI(ChatGPT) for a given feedback.
-def generate_insights(feedback):
+# Generate refined feedback from OpenAI(ChatGPT) for a given feedback.
+def refine_feedback(feedback):
     if not feedback:
         return "No feedback provided."
     response = client.chat.completions.create(
         model="gpt-4o-mini",  # Most cost effective model currently 2/7/25
         messages=[
-            {"role": "system", "content": "You are a helpful assistant that is going to take user feedback and provide actionable insights based on employee feedback.If the feedback is gibberish, nonsensical, too short, or otherwise invalid, respond with 'Invalid Feedback'."},
-            {"role": "user", "content": f"Provide 1 actionable insight for: {feedback} to keep things simple keep your resonses strictly to text as they will be stored in a database."}
+            {"role": "system", "content": "You are a helpful assistant that is going to take user feedback and refine it to make it easier to analyze it or to create actionable insights.If the feedback is gibberish, nonsensical, too short, or otherwise invalid, respond with 'Invalid Feedback'."},
+            {"role": "user", "content": f"Refine the feedback: {feedback} to keep things simple keep your resonses strictly to text as they will be stored in a database."}
         ]
     )
     return response.choices[0].message.content
@@ -75,7 +75,7 @@ def process_feedback():
     feedback_entries = fetch_feedback()
     if feedback_entries:
         for entryID, comment1, comment2, comment3 in feedback_entries:
-            gpt_answers = [generate_insights(comment) for comment in [comment1, comment2, comment3]]
+            gpt_answers = [refine_feedback(comment) for comment in [comment1, comment2, comment3]]
             store_insights(entryID, gpt_answers)
     print("Feedback processed successfully.")
     categorize_existing_feedback()
