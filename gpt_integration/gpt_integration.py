@@ -11,32 +11,36 @@ load_dotenv()
 # OpenAI connection (fetch API key from .env)
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# Connect to MySQL database (fetch credentials from .env)
-def connect_db():
-    try:
-        connection = mysql.connector.connect(
+# Global persistent connection variable.
+db_connection = None
+
+# Get persistent database connection (fetch credentials from .env)
+def get_db_connection():
+    global db_connection
+    if db_connection is None or not db_connection.is_connected():
+        db_connection = mysql.connector.connect(
             host=os.getenv("DB_HOST"),
             user=os.getenv("DB_USER"),
             password=os.getenv("DB_PASSWORD"),
             database=os.getenv("DB_NAME")
         )
-        print("Successfully Extracted Data")
-        return connection
-    except mysql.connector.Error as err:
-        print(f"Database Connection Failure: {err}")
-        return None
+        print("Successfully Connected to the Database")
+    return db_connection
+
 
 # Fetch responses to survey from MySQL database.
 def fetch_feedback():
-    connection = connect_db()
-    if connection:
-        cursor = connection.cursor()
-        cursor.execute("""
-            SELECT entryID, comment1, comment2, comment3 
-            FROM feedback 
-            WHERE gpt_answer_1 IS NULL OR gpt_answer_2 IS NULL OR gpt_answer_3 IS NULL
-        """)
-        return cursor.fetchall()
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    cursor.execute("""
+        SELECT entryID, comment1, comment2, comment3 
+        FROM feedback 
+        WHERE gpt_answer_1 IS NULL OR gpt_answer_2 IS NULL OR gpt_answer_3 IS NULL
+    """)
+    results = cursor.fetchall()
+    cursor.close()
+    return results
+
 
 # Generate actionable insights from OpenAI(ChatGPT) for a given feedback.
 def generate_insights(feedback):
@@ -51,18 +55,20 @@ def generate_insights(feedback):
     )
     return response.choices[0].message.content
 
+
 # Store insights back into MySQL
 def store_insights(entryID, gpt_answers):
-    connection = connect_db()
-    if connection:
-        cursor = connection.cursor()
-        query = """
-            UPDATE feedback
-            SET gpt_answer_1 = %s, gpt_answer_2 = %s, gpt_answer_3 = %s
-            WHERE entryID = %s
-        """
-        cursor.execute(query, (gpt_answers[0], gpt_answers[1], gpt_answers[2], entryID))
-        connection.commit()
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    query = """
+        UPDATE feedback
+        SET gpt_answer_1 = %s, gpt_answer_2 = %s, gpt_answer_3 = %s
+        WHERE entryID = %s
+    """
+    cursor.execute(query, (gpt_answers[0], gpt_answers[1], gpt_answers[2], entryID))
+    connection.commit()
+    cursor.close()
+
 
 # Main function to process feedback and generate insights
 def process_feedback():
@@ -71,8 +77,12 @@ def process_feedback():
         for entryID, comment1, comment2, comment3 in feedback_entries:
             gpt_answers = [generate_insights(comment) for comment in [comment1, comment2, comment3]]
             store_insights(entryID, gpt_answers)
+    print("Feedback processed successfully.")
+    categorize_existing_feedback()
+
 
 ##process_feedback()
+
 
 ## Prompt for Categorization of the feedback in gpt_answer_1, gpt_answer_2, gpt_answer_3
 def categorize_with_gpt(combined_text):
@@ -121,11 +131,7 @@ def categorize_existing_feedback():
     
     This function can be triggered independently (e.g., via a button in an admin interface).
     """
-    connection = connect_db()
-    if not connection:
-        print("Database connection error.")
-        return
-
+    connection = get_db_connection()
     cursor = connection.cursor()
     # Retrieve entryID and GPT answers from the feedback table.
     cursor.execute("SELECT entryID, gpt_answer_1, gpt_answer_2, gpt_answer_3 FROM feedback")
@@ -143,6 +149,7 @@ def categorize_existing_feedback():
         cursor.execute(update_query, (category, entryID))
     
     connection.commit()
+    cursor.close()
     print("Survey categories updated successfully.")
 
 
@@ -150,12 +157,13 @@ def categorize_existing_feedback():
 
 
 def fetch_category_counts():
-    connection = connect_db()
-    if connection:
-        cursor = connection.cursor()
-        cursor.execute("SELECT survey_category, COUNT(*) FROM feedback GROUP BY survey_category")
-        return cursor.fetchall()
-    return []
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    cursor.execute("SELECT survey_category, COUNT(*) FROM feedback GROUP BY survey_category")
+    results = cursor.fetchall()
+    cursor.close()
+    return results
+
 
 def generate_visuals():
     category_counts = fetch_category_counts()
@@ -190,25 +198,20 @@ def generate_visuals():
         print("No category data available.")
 
 
-##generate_visuals()
-
 def generate_top_level_summary():
     """
     Fetches GPT-generated answers and their associated survey categories,
     combines them into a summary prompt, and uses GPT to produce a concise,
     bullet-point top-level view of the most prevalent issues (fit for one page).
     """
-    connection = connect_db()
-    if not connection:
-        print("Database connection error.")
-        return
-
+    connection = get_db_connection()
     cursor = connection.cursor()
     # Retrieve the relevant columns from the feedback table.
     cursor.execute("SELECT survey_category, gpt_answer_1, gpt_answer_2, gpt_answer_3 FROM feedback")
     rows = cursor.fetchall()
     cursor.close()
-    connection.close()
+    # Do not close persistent connection here.
+    # connection.close()
     
     if not rows:
         print("No feedback data found.")
@@ -245,8 +248,6 @@ def generate_top_level_summary():
     print(summary)
 
 
-
-
 def generate_cards():
     """
     Aggregates all GPT answers from the feedback table,
@@ -267,11 +268,7 @@ def generate_cards():
       - Processes/Procedures
       - Invalid
     """
-    connection = connect_db()
-    if not connection:
-        print("Database connection error.")
-        return
-
+    connection = get_db_connection()
     cursor = connection.cursor()
 
     try:
@@ -294,6 +291,7 @@ def generate_cards():
         if not rows:
             print("No valid new feedback available to analyze.")
             print(f"Skipped {total_new_rows} feedback rows.")
+            cursor.close()
             return
 
         all_feedback = []
@@ -309,6 +307,7 @@ def generate_cards():
         if not all_feedback:
             print("No valid feedback available to analyze.")
             print(f"Skipped {total_new_rows} feedback rows.")
+            cursor.close()
             return
 
         # 2) Create one big chunk of text representing all valid feedback.
@@ -404,9 +403,9 @@ def generate_cards():
     
     finally:
         cursor.close()
-        connection.close()
+        # Do not close the persistent connection here.
+        # connection.close()
 
 
-
-
+process_feedback()
 generate_cards()
