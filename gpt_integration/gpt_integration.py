@@ -2,7 +2,6 @@ import mysql.connector
 from openai import OpenAI
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
-import json
 import matplotlib.pyplot as plt
 import os
 
@@ -252,8 +251,13 @@ def generate_cards():
     """
     Aggregates all GPT answers from the feedback table,
     asks GPT to identify 3-7 top-level issues or trends,
-    and stores each trend as (response_text, insight_text, category) in the responses table.
+    and stores each trend as (response_text, insight_text, survey_category) in the responses table.
     
+    Security measures:
+      1. Only analyzes feedback that has a survey_category not equal to "Invalid"
+         and where none of the GPT answers are "Invalid Feedback".
+      2. Only analyzes feedback that has not already been processed (cards_generated is NULL or 0).
+         
     The Category must be one of the following:
       - Work Environment
       - Job Satisfaction
@@ -271,29 +275,57 @@ def generate_cards():
     cursor = connection.cursor()
 
     try:
-        # 1) Gather all GPT answers from the feedback table
-        cursor.execute("SELECT gpt_answer_1, gpt_answer_2, gpt_answer_3 FROM feedback")
+        # 0) Count all new (unprocessed) feedback rows.
+        cursor.execute("SELECT COUNT(*) FROM feedback WHERE cards_generated IS NULL OR cards_generated = 0")
+        total_new_rows = cursor.fetchone()[0]
+
+        # 1) Retrieve valid, unprocessed feedback entries.
+        cursor.execute("""
+            SELECT entryID, gpt_answer_1, gpt_answer_2, gpt_answer_3, survey_category 
+            FROM feedback 
+            WHERE survey_category != 'Invalid'
+              AND gpt_answer_1 != 'Invalid Feedback'
+              AND gpt_answer_2 != 'Invalid Feedback'
+              AND gpt_answer_3 != 'Invalid Feedback'
+              AND (cards_generated IS NULL OR cards_generated = 0)
+        """)
         rows = cursor.fetchall()
         
-        # Combine all answers into a single text block
-        all_feedback = []
-        for ans1, ans2, ans3 in rows:
-            # Only keep non-empty strings
-            feedback_parts = [ans for ans in (ans1, ans2, ans3) if ans]
-            if feedback_parts:
-                # Merge them into one line per row
-                all_feedback.append(" ".join(feedback_parts))
-        
-        if not all_feedback:
-            print("No feedback available to analyze.")
+        if not rows:
+            print("No valid new feedback available to analyze.")
+            print(f"Skipped {total_new_rows} feedback rows.")
             return
 
-        # 2) Create one big chunk of text representing all feedback
+        all_feedback = []
+        processed_ids = []  # To track feedback rows that are processed.
+        for entryID, ans1, ans2, ans3, survey_category in rows:
+            # Only keep non-empty strings.
+            feedback_parts = [ans for ans in (ans1, ans2, ans3) if ans]
+            if feedback_parts:
+                # Merge them into one line per row.
+                all_feedback.append(" ".join(feedback_parts))
+                processed_ids.append(entryID)
+        
+        if not all_feedback:
+            print("No valid feedback available to analyze.")
+            print(f"Skipped {total_new_rows} feedback rows.")
+            return
+
+        # 2) Create one big chunk of text representing all valid feedback.
         combined_feedback = "\n".join(all_feedback)
 
-        # 3) Prompt GPT to identify 3-7 critical or repeating issues
+        # 3) Build prompt for GPT.
+        num_feedback_rows = len(rows)
+
+        if num_feedback_rows <= 3:
+            trend_range = "1-2"
+        elif num_feedback_rows <= 8:
+            trend_range = "2-5"
+        else:
+            trend_range = "3-7"
+
         prompt = (
-            "You have the complete set of employee feedback. Identify the 3-7 most critical or repeating issues. "
+            f"Identify up to {trend_range} critical or repeating issues, depending on how many distinct themes emerge. If there are fewer clear issues, return fewer."
             "For each issue, provide:\n"
             "- Title: A concise, one-sentence summary of the problem.\n"
             "- Insight: Exactly three sentences of actionable recommendations.\n"
@@ -308,12 +340,11 @@ def generate_cards():
             f"All Feedback:\n{combined_feedback}"
         )
 
-        # Use your OpenAI client (note 'client' instead of 'openai' if you created an OpenAI instance)
         response = client.chat.completions.create(
-            model="gpt-4o-mini",  # or whichever model you prefer
+            model="gpt-4o-mini",  # or your preferred model
             messages=[
                 {
-                    "role": "system", 
+                    "role": "system",
                     "content": "You analyze aggregated employee feedback and provide concise, actionable trends."
                 },
                 {"role": "user", "content": prompt}
@@ -322,45 +353,32 @@ def generate_cards():
 
         response_text = response.choices[0].message.content.strip()
 
-        # 4) Parse the GPT output
+        # 4) Parse GPT output.
         lines = [line.strip() for line in response_text.split("\n") if line.strip()]
 
-        # We'll store up to 7 total (Title, Insight, Category) triples
-        # GPT might have them in groups of three lines per issue:
-        #   Title: ...
-        #   Insight: ...
-        #   Category: ...
-        # We'll parse accordingly.
-        
         card_data = []
         current_title = None
         current_insight = None
         current_category = None
 
         for line in lines:
-            # Check for "Title:"
             if line.lower().startswith("title:"):
-                # If there's a complete set from the previous iteration, store it
+                # If a full set has been built, store it.
                 if current_title and current_insight and current_category:
                     card_data.append((current_title, current_insight, current_category))
-                # Start a new set
                 current_title = line.split(":", 1)[1].strip()
                 current_insight = None
                 current_category = None
-
-            # Check for "Insight:"
             elif line.lower().startswith("insight:"):
                 current_insight = line.split(":", 1)[1].strip()
-
-            # Check for "Category:"
             elif line.lower().startswith("category:"):
                 current_category = line.split(":", 1)[1].strip()
 
-        # Add the last parsed entry
+        # Add the last parsed entry.
         if current_title and current_insight and current_category:
             card_data.append((current_title, current_insight, current_category))
 
-        # 5) Store results in the database
+        # 5) Insert the cards into the responses table.
         cursor.executemany(
             "INSERT INTO responses (response_text, insight_text, survey_category) VALUES (%s, %s, %s)",
             card_data
@@ -368,12 +386,27 @@ def generate_cards():
         connection.commit()
         print(f"{len(card_data)} trends inserted into responses table.")
 
+        # 6) Mark the processed feedback entries as analyzed to avoid reprocessing.
+        if processed_ids:
+            format_strings = ','.join(['%s'] * len(processed_ids))
+            update_query = f"UPDATE feedback SET cards_generated = 1 WHERE entryID IN ({format_strings})"
+            cursor.execute(update_query, processed_ids)
+            connection.commit()
+            print(f"Marked {len(processed_ids)} feedback entries as analyzed.")
+
+        # 7) Print analyzed and skipped counts.
+        analyzed_count = len(rows)
+        skipped_count = total_new_rows - analyzed_count
+        print(f"Skipped {skipped_count} feedback rows. ")
+
     except Exception as e:
         print(f"Error: {e}")
     
     finally:
         cursor.close()
         connection.close()
+
+
 
 
 generate_cards()
