@@ -26,6 +26,7 @@
       border-radius: 8px;
       margin-bottom: 30px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      position: relative;
     }
     .header h1 {
       margin: 0;
@@ -33,7 +34,7 @@
       font-weight: 600;
     }
     .logout-btn {
-      background-color: #d9534f;
+      background-color: red;
       color: white;
       border: none;
       padding: 10px 20px;
@@ -43,7 +44,7 @@
       transition: background-color 0.3s;
     }
     .logout-btn:hover {
-      background-color: #c9302c;
+      background-color: darkred;
     }
     .board {
       display: flex;
@@ -55,15 +56,22 @@
       padding-bottom: 20px;
       max-height: 80vh;
       overflow-y: auto;
+      width: 95%; 
+      max-width: 1000px; 
+      padding: 0 10px; 
+      overflow-x: hidden;
     }
     .post {
       background: #ffffff;
       padding: 20px;
+      width: 100%;
+      max-width: 900px; 
+      margin: 0 auto;
       border-radius: 12px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
       display: flex;
       flex-direction: column;
-      min-height: 180px;
+      min-height: auto; 
       transition: transform 0.3s ease, box-shadow 0.3s ease;
       cursor: pointer;
     }
@@ -82,8 +90,13 @@
       font-size: 1.1rem;
       line-height: 1.6;
     }
+    .date {
+      font-size: 0.9rem;
+      color: #777;
+      margin-top: 10px;
+    }
     button {
-      background-color: #0078d4;
+      background-color: #d9534f;
       color: white;
       border: none;
       padding: 12px;
@@ -94,55 +107,222 @@
       margin-top: 10px;
       width: fit-content;
     }
-    button:hover {
+  button:hover {
       background-color: #005a9e;
     }
+
+  .delete-btn {
+      background-color: red;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: block; 
+      visibility: visible;
+    }
+
+  .delete-btn:hover {
+    background-color: darkred;
+    }
+
+
+  #showOlderBtn {
+    background-color: #0078d4; 
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+#showOlderBtn:hover {
+  background-color: #005a9e; 
+}
+
+.admin-btn {
+  background-color: #0078d4;
+  color: white;
+  border: none;
+  padding: 0 20px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 30px; 
+  cursor: pointer;
+  position: fixed;
+  top: 10px;
+  right: 20px;
+  z-index: 1000;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+}
+
+.admin-btn:hover {
+  background-color: #005a9e;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2), 0 0 8px #0078d4; /* Glowing effect */
+}
+
+
+
   </style>
 </head>
 <body>
   <div class="header">
     <h1>Employee Feedback Board</h1>
     <button class="logout-btn" id="logoutBtn">Logout</button>
+    <!-- Admin button will be conditionally added here -->
   </div>
 
   <div id="board" class="board"></div>
+  <button id="showOlderBtn" class="show-older-btn">Show Older Posts</button>
 
   <script>
     let postsData = [];
+    let showOlder = false;
+    let isAdmin = false; 
 
     async function fetchPosts() {
       try {
         const token = localStorage.getItem("token");
         if (!token) {
           alert("You need to log in to access this page.");
-          window.location.href = '/api/login';
+          window.location.href = '/api/login';  
+          return;
         }
+
+        // Check if the user is an admin
+        isAdmin = await checkAdminStatus(token);
+
         const response = await fetch('http://localhost:3000/api/posts', {
           method: 'GET',
           headers: { 'Authorization': `Bearer ${token}` },
           mode: 'cors'
         });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch posts');
+        }
+
         const data = await response.json();
         postsData = data;
-        renderBoard(postsData);
+        renderBoard();  
       } catch (error) {
         console.error('Error fetching posts:', error);
+        alert("Failed to load posts. Please try again.");
       }
     }
 
-    function renderBoard(posts) {
+    async function checkAdminStatus(token) {
+      try {
+        const response = await fetch('/api/check-admin', {
+          method: 'GET',
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+        const data = await response.json();
+        return data.isAdmin; 
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        return false; 
+    }
+  }
+
+    async function renderBoard() {
       const board = document.getElementById('board');
-      board.innerHTML = ''; 
-      posts.forEach(post => {
+      board.innerHTML = '';
+
+      const now = new Date();
+      const sixDaysAgo = new Date();
+      sixDaysAgo.setDate(now.getDate() - 6);
+
+      const filteredPosts = postsData.filter(post => {
+        const postDate = new Date(post.created_at);
+        return showOlder || postDate >= sixDaysAgo;
+      });
+
+      const token = localStorage.getItem('token');
+
+      filteredPosts.forEach(post => {
         const postElement = document.createElement('div');
         postElement.classList.add('post');
+        postElement.style.position = 'relative';  
+
         postElement.innerHTML = `
           <h3>${post.post_title}</h3>
-          <p><i>${post.post_body}</i></p>
-          `;
+          <p>${post.post_body}</p>
+          <div class="date">Posted on: ${new Date(post.created_at).toLocaleDateString()}</div>
+        `;
+
+        if (isAdmin) {
+          const deleteButton = document.createElement('button');
+          deleteButton.classList.add('delete-btn');
+          deleteButton.textContent = 'Delete';
+          deleteButton.onclick = () => deletePost(post.post_id);
+
+          postElement.appendChild(deleteButton);
+        }
+
         board.appendChild(postElement);
       });
+
+      document.getElementById('showOlderBtn').style.display = showOlder ? 'none' : 'block';
+
+      // If user is admin, show the admin portal button
+      if (isAdmin) {
+        const adminBtn = document.createElement('button');
+        adminBtn.classList.add('admin-btn');
+        adminBtn.textContent = 'Go to Admin Portal';
+        adminBtn.onclick = () => {
+          window.location.href = 'http://localhost:3000/api/admin-home';
+        };
+        document.querySelector('.header').appendChild(adminBtn);
+      }
     }
+
+    async function deletePost(postId) {
+      const token = localStorage.getItem("token");
+
+      if (!postId) {
+        console.error("Post ID is missing!");
+        return;
+      }
+
+      try {
+        const response = await fetch(`http://localhost:3000/api/posts/${postId}`, {
+          method: 'DELETE', 
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+          alert(result.message);
+          fetchPosts();  
+        } else {
+          alert(result.message);
+        }
+      } catch (error) {
+        console.error('Error deleting post:', error);
+        alert('Failed to delete post');
+      }
+    }
+
+    document.getElementById('showOlderBtn').addEventListener('click', () => {
+      showOlder = true;
+      renderBoard();
+    });
 
     document.getElementById('logoutBtn').addEventListener('click', () => {
       localStorage.removeItem('token');

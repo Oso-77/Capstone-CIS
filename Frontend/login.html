@@ -96,7 +96,7 @@
 
       <!-- Submit Button -->
       <button type="submit" class="submit-btn">Login</button>
-      <!-- <button type="button" class="submit-btn" onclick="window.location.href='/api/main';" style="margin-top: 10px; background-color: #6c757d;">
+      <!-- <button type="button" class="submit-btn" onclick="window.location.href='/api/board';" style="margin-top: 10px; background-color: #6c757d;">
         Return to Cards
       </button> -->
     </form>
@@ -115,7 +115,7 @@
           },
           success: function (response) {
             if (response.isAdmin) {
-              window.location.href = '/api/leader-response';
+              window.location.href = '/api/admin-home';
             } else {
               window.location.href = '/api/form';
             }
@@ -158,14 +158,14 @@
               headers: { Authorization: `Bearer ${response.token}` },
               success: function (adminResponse) {
                 if (adminResponse.isAdmin) {
-                  window.location.href = '/api/leader-response';  // Admin page
+                  window.location.href = '/api/admin-home';  // Admin page
                 } else {
-                  window.location.href = '/api/main';   // Navigates to cards (main) if account is not admin
+                  window.location.href = '/api/board';   // Navigates to cards (board) if account is not admin
                 }
               },
               error: function () {
                 alert("Error checking admin status.");
-                window.location.href = '/api/main';  // Default to cards (main) page if error
+                window.location.href = '/api/board';  // Default to cards (board) page if error
               }
             });
           } else {

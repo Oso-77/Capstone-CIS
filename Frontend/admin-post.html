@@ -5,76 +5,76 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Employee Feedback Board</title>
   <style>
-    body {
-      font-family: "Segoe UI", sans-serif;
-      background-color: #f8f9fa;
+    
+    body { 
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #f0f2f5, #d9e4f5);
       margin: 0;
       padding: 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
+      padding-top: 0;
     }
 
-    .header {
-      font-size: 2.5rem;
-      font-weight: bold;
-      color: #222;
-      text-align: center;
-      margin-bottom: 40px;
-      padding: 20px;
-      padding-top: 0px;
-      width: 100%;
-      position: relative;
-      background-color: #007bff;
+    .navbar {
+      background-color: #2c3e50;
       color: white;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    }
-
-    .header .header-title {
-      font-size: 2.5rem;
-      margin-bottom: 15px;
-    }
-
-    .header-buttons {
+      padding: 15px 40px;
       display: flex;
-      justify-content: center;
-      gap: 15px;
-      margin-top: 10px;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      position: sticky;
+      top: 0;
     }
 
-    .login-button {
-      position: absolute;
-      top: 15px;
-      right: 20px;
-      background-color: #ffffff;
-      color: #007bff;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 6px;
+    .navbar h1 {
+      margin: 0;
+      margin-left: 1%;
+      font-size: 1.8rem;
+      white-space: nowrap;  
+      flex-shrink: 0;  
+      text-align: left;
+    }
+
+    .navbar a {
+      color: white;
+      font-size: 1.1rem;
+      margin-left: 20px;  
       text-decoration: none;
-      font-size: 1rem;
-      transition: background 0.3s;
+      font-weight: 500;
+      padding: 8px 20px;  
+      border-radius: 5px;
+      transition: background-color 0.3s ease;
     }
 
-    .login-button:hover {
-      background-color: #e6f0ff;
+    .navbar a:hover {
+      background-color: #34495e;
+      text-decoration: none;
     }
 
-    .logout-btn, .submit-btn {
-      background-color: #ffffff;
-      color: #007bff;
-      padding: 10px 20px;
+    .navbar .logout-btn {
+      background-color: red;
+      color: white;
       border: none;
-      border-radius: 6px;
-      font-size: 1rem;
+      padding: 12px 25px;  
+      border-radius: 5px;
+      font-size: 16px;
       cursor: pointer;
       transition: background-color 0.3s;
+      margin-left: 30px; 
     }
 
-    .logout-btn:hover, .submit-btn:hover {
-      background-color: #e6f0ff;
+    .navbar .logout-btn:hover {
+      background-color: darkred;
     }
+
+
+    .navbar a:not(:last-child) {
+      margin-right: 20px;
+    }
+
 
     .board {
       display: grid;
@@ -93,6 +93,7 @@
       display: flex;
       flex-direction: column;
       min-height: 250px;
+      position: relative;
     }
 
     .post h3 {
@@ -148,7 +149,8 @@
     }
 
     button {
-      background-color: #0078d4;
+      margin-top: auto;
+      background-color: #2c3e50;
       color: white;
       border: none;
       padding: 12px;
@@ -162,31 +164,29 @@
       background-color: #005a9e;
     }
 
-    .logout-btn {
-      background-color: #d9534f;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 5px;
-      font-size: 16px;
-      cursor: pointer;
-      margin-top: 20px;
-      transition: background-color 0.3s;
+    .checkmark {
+      position: absolute;
+      top: 10px;
+      right: 10px; 
+      font-size: 24px;
+      color: green;
     }
 
-    .logout-btn:hover {
-      background-color: #c9302c;
-    }
+
+
+
+
   </style>
 </head>
 <body>
-  <div class="header">
-    <div class="header-title">Respond to Employee Issues</div>
-    <div class="header-buttons">
-      <button class="submit-btn" onclick="window.location.href='/api/board';">View Main Board</button>
-      <button class="submit-btn" onclick="window.location.href = '/api/engagement-metrics';">Go to Engagement Metrics</button>
-    </div>
+  <div class="navbar">
+    <h1>Admin Console || Create a Post</h1>
+    <div>
+      <a href="/api/board">User Board</a>
+      <a href="/api/admin-post">Create a Post</a>
+      <a href ='/api/engagement-metrics'>Engagement Metrics</a>
     <button class="logout-btn" id="logoutBtn">Logout</button>
+    </div>
   </div>
   
   <div id="board" class="board"></div>
@@ -204,41 +204,60 @@
   <script>
     let issuesData = [];
     let currentDbId = null;
+    let postsData = [];
 
-    async function fetchData() {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          alert("You need to log in to access this page.");
-          window.location.href = '/api/login';
-        }
-        const response = await fetch('http://localhost:3000/api/response', {
-          method: 'GET',
-          headers: { 'Authorization': `Bearer ${token}` },
-          mode: 'cors'
-        });
-        const data = await response.json();
-        issuesData = data;
-        renderBoard(issuesData);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
+async function fetchData() {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("You need to log in to access this page.");
+      window.location.href = '/api/login';
     }
 
-    function renderBoard(issues) {
-      const board = document.getElementById('board');
-      board.innerHTML = '';
-      issues.forEach(issue => {
-        const post = document.createElement('div');
-        post.classList.add('post');
-        post.innerHTML = `
-          <h3>${issue.response_text}</h3>
-          <p><i>✨ AI Suggestion: ${issue.insight_text}</i></p>
-          <button onclick="handlePostAction(${issue.db_id})">Create a post</button>
-        `;
-        board.appendChild(post);
-      });
-    }
+    // Fetch responses
+    const response = await fetch('http://localhost:3000/api/response', {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${token}` },
+      mode: 'cors'
+    });
+    issuesData = await response.json();
+
+    // Fetch posts
+    const postsResponse = await fetch('http://localhost:3000/api/posts', {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${token}` },
+      mode: 'cors'
+    });
+    postsData = await postsResponse.json();
+
+    renderBoard(issuesData);  
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
+}
+
+
+function renderBoard(issues) {
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+  issues.forEach(issue => {
+    const post = document.createElement('div');
+    post.classList.add('post');
+
+    const isPostCreated = postsData.some(postData => postData.db_id === issue.db_id);
+    
+    const checkmark = isPostCreated ? `<span class="checkmark">✔</span>` : '';
+
+    post.innerHTML = `
+      ${checkmark}
+      <h3>${issue.response_text}</h3>
+      <p><i>✨ AI Suggestion: ${issue.insight_text}</i></p>
+      <button onclick="handlePostAction(${issue.db_id})">Create a post</button>
+    `;
+    board.appendChild(post);
+  });
+}
+
 
     function handlePostAction(id) {
       currentDbId = id;
@@ -276,6 +295,7 @@
         if (response.ok) {
           alert('Post created successfully!');
           closeModal();
+          window.location.reload();
         } else {
           alert(`Error creating post: ${data.message}`);
           console.error('Error details:', data);
@@ -291,6 +311,11 @@
 
     document.getElementById('modalClose').addEventListener('click', closeModal);
     document.getElementById('submitPost').addEventListener('click', submitPost);
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      localStorage.removeItem('token');
+      window.location.href = '/api/login';
+    });
     fetchData();
   </script>
 </body>

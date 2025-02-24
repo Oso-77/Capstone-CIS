@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Console</title>
+  <style>
+    body { 
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #f0f2f5, #d9e4f5);
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 0;
+  }
+
+  .navbar {
+    background-color: #2c3e50;
+    color: white;
+    padding: 15px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    position: sticky;
+    top: 0;
+  }
+
+  .navbar h1 {
+    margin: 0;
+    margin-left: 1%;
+    font-size: 1.8rem;
+    white-space: nowrap;  
+    flex-shrink: 0;  
+  }
+
+  .navbar a {
+    color: white;
+    font-size: 1.1rem;
+    margin-left: 20px;  
+    text-decoration: none;
+    font-weight: 500;
+    padding: 8px 20px;  
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+  }
+
+  .navbar a:hover {
+    background-color: #34495e;
+    text-decoration: none;
+  }
+
+  .navbar .logout-btn {
+    background-color: red;
+    color: white;
+    border: none;
+    padding: 12px 25px;  
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-left: 30px; 
+  }
+
+  .navbar .logout-btn:hover {
+    background-color: darkred;
+  }
+
+
+  .navbar a:not(:last-child) {
+    margin-right: 20px;
+  }
+
+    .content {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 80vh;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .content h2 {
+      font-size: 3rem;
+      color: #2c3e50;
+      margin-bottom: 10px;
+    }
+
+    .content p {
+      font-size: 1.2rem;
+      color: #555;
+      max-width: 600px;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="navbar">
+    <h1>Admin Console</h1>
+    <div>
+      <a href="/api/board">User Board</a>
+      <a href="/api/admin-post">Create a Post</a>
+      <a href="/api/engagement-metrics">Engagement Metrics</a>
+      <button class="logout-btn" id="logoutBtn">Logout</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <h2>Welcome, Admin</h2>
+    <p>Manage engagement, posts, and more—all in one place.</p>
+  </div>
+
+  <script>
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      localStorage.removeItem('token');
+      window.location.href = '/api/login';
+    });
+  </script>
+
+</body>
+</html>

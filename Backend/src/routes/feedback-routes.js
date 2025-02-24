@@ -15,13 +15,14 @@ router.get('/form', (req, res) => {
     res.sendFile(path.join(__dirname + '../../../../Frontend', 'survey.html'));
 });
 
+router.get('/admin-home', (req, res) => {
+    res.sendFile(path.join(__dirname + '../../../../Frontend', 'admin-home.html'));
+});
+
 router.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname + '../../../../Frontend', 'login.html'));
 });
 
-router.get('/leader-response', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../../Frontend', 'leader_response.html'));
-});
 
 router.get('/engagement-metrics', (req, res) => {
     res.sendFile(path.join(__dirname, '../../../Frontend', 'engagement_metrics.html'));
@@ -69,13 +70,8 @@ router.get('/check-admin', authenticateToken, async (req, res) => {
 });
 
 
-router.get('/dashboard', authenticateApiKey, (req, res) => {
-    res.sendFile(path.join(__dirname + '../../../../Frontend', 'dashboard.html'));
-
-});
-
-router.get('/main', authenticateApiKey, (req, res) => {
-    res.sendFile(path.join(__dirname + '../../../../Frontend/response_board', 'main.html'));
+router.get('/admin-post', authenticateApiKey, (req, res) => {
+    res.sendFile(path.join(__dirname + '../../../../Frontend', 'admin-post.html'));
 
 });
 
@@ -237,6 +233,34 @@ router.get("/posts", authenticateApiKey, authenticateToken, async (req, res) => 
         res.status(500).json({ message: "Internal server error." });
     }
 });
+
+
+
+router.delete('/posts/:postId', authenticateApiKey, async (req, res) => {
+    try {
+      const { postId } = req.params;
+  
+      if (!postId) {
+        return res.status(400).json({ message: 'Post ID is required' });
+      }
+  
+      // Query to delete the post by post_id
+      const query = 'DELETE FROM posts WHERE post_id = ?';
+      const result = await db.query(query, [postId]);
+  
+      if (result.rowCount === 0) {
+        return res.status(404).json({ message: 'Post not found' });
+      }
+  
+      res.json({ message: 'Post deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      res.status(500).json({ message: 'Error deleting post' });
+    }
+  });
+  
+  
+  
 
 
 
