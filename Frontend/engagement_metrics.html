@@ -144,13 +144,20 @@
   <script>
     let categoryChart; // We'll store our Chart.js instance here
 
-    $(document).ready(function () {
+    $(document).ready( async function () {
       const token = localStorage.getItem("token");
       if (!token) {
         alert("You need to log in to access Engagement Metrics.");
         window.location.href = '/api/login';
       }
+      
+      isAdmin = await checkAdminStatus(token);
 
+      if (!isAdmin) {
+        alert("You need to be an admin to access this page.");
+          window.location.href = '/api/board';  
+          return;
+      }
       // Logout handler
       $('#logoutBtn').click(function () {
         localStorage.removeItem("token");
@@ -229,6 +236,21 @@
         }
       });
     }
+    async function checkAdminStatus(token) {
+      try {
+        const response = await fetch('/api/check-admin', {
+          method: 'GET',
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+        const data = await response.json();
+        return data.isAdmin; 
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        return false; 
+    }
+  }
   </script>
 </body>
 </html>

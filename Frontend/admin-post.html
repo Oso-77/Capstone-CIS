@@ -214,6 +214,13 @@ async function fetchData() {
       alert("You need to log in to access this page.");
       window.location.href = '/api/login';
     }
+    isAdmin = await checkAdminStatus(token);
+
+      if (!isAdmin) {
+        alert("You need to be an admin to access this page.");
+          window.location.href = '/api/board';  
+          return;
+      }
 
     // Fetch responses
     const response = await fetch('http://localhost:3000/api/response', {
@@ -317,6 +324,22 @@ function renderBoard(issues) {
       localStorage.removeItem('token');
       window.location.href = '/api/login';
     });
+
+    async function checkAdminStatus(token) {
+      try {
+        const response = await fetch('/api/check-admin', {
+          method: 'GET',
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+        const data = await response.json();
+        return data.isAdmin; 
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        return false; 
+    }
+  }
     fetchData();
   </script>
 </body>
