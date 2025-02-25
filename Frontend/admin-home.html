@@ -115,10 +115,20 @@
   </div>
 
   <script>
+    function checkAdminStatus(){ 
+    const token = localStorage.getItem("token");
+        if (!token) {
+          alert("You need to log in to access this page.");
+          window.location.href = '/api/login';  
+          return;
+        }
+      }
     document.getElementById('logoutBtn').addEventListener('click', () => {
       localStorage.removeItem('token');
       window.location.href = '/api/login';
     });
+
+    checkAdminStatus();
   </script>
 
 </body>

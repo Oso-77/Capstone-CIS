@@ -15,7 +15,7 @@ router.get('/form', (req, res) => {
     res.sendFile(path.join(__dirname + '../../../../Frontend', 'survey.html'));
 });
 
-router.get('/admin-home', (req, res) => {
+router.get('/admin-home',(req, res) => {
     res.sendFile(path.join(__dirname + '../../../../Frontend', 'admin-home.html'));
 });
 
