@@ -154,7 +154,7 @@
   border-radius: 30px; 
   cursor: pointer;
   position: fixed;
-  top: 10px;
+  bottom: 10px;
   right: 20px;
   z-index: 1000;
   height: 90px;
@@ -284,6 +284,15 @@
         adminBtn.textContent = 'Go to Admin Portal';
         adminBtn.onclick = () => {
           window.location.href = 'http://localhost:3000/api/admin-home';
+        };
+        document.querySelector('.header').appendChild(adminBtn);
+      }
+      else {
+        const adminBtn = document.createElement('button');
+        adminBtn.classList.add('admin-btn');
+        adminBtn.textContent = 'Submit Feedback';
+        adminBtn.onclick = () => {
+          window.location.href = 'http://localhost:3000/api/form';
         };
         document.querySelector('.header').appendChild(adminBtn);
       }
