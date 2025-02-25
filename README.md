@@ -25,7 +25,7 @@ A comprehensive employee feedback platform that enables organizations to securel
    - DB_PASSWORD
    - DB_NAME
    - API_KEY
-6. Run "npm run start" within directory in terminal to start server
+6. Run "npm run start" within Backend in terminal to start server
 7. Navigate to http://localhost:3000/api/login to access the platform
 
 ## Functionality
