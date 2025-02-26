@@ -31,11 +31,17 @@ A comprehensive employee feedback platform that enables organizations to securel
 ## Functionality
 The following pages provide functionality for the platform with integrated role-based access:
 - Login - http://localhost:3000/api/login
+![login](/Assets/login.png)
 - Survey - http://localhost:3000/api/form
+![survey](/Assets/survey.png)
 - Feedback Dashboard - http://localhost:3000/api/board
+![dashboard](/Assets/feedback.png)
 - Admin Home - http://localhost:3000/api/admin-home
+![ad_home](/Assets/ad_home.png)
 - Admin Response Dashboard - http://localhost:3000/api/admin-post
+![ad_resp_dash](/Assets/ad_response.png)
 - Engagement Metrics - http://localhost:3000/api/engagement-metrics
+![metrics](/Assets/metrics.png)
 
 All accounts will have to provide credentials before being granted to the platform.
 - Employees can only access the survey page; Admins have access to the entirety of the platform
