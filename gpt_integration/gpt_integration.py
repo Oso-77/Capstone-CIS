@@ -73,6 +73,7 @@ def store_insights(entryID, gpt_answers):
 
 # Main function to process feedback and generate insights
 def process_feedback():
+    delete_all_responses()
     feedback_entries = fetch_feedback()
     if feedback_entries:
         for entryID, comment1, comment2, comment3 in feedback_entries:
@@ -407,5 +408,30 @@ def generate_cards():
         # Do not close the persistent connection here.
         # connection.close()
 
+def truncate_responses():
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    try:
+        # This deletes all rows from the responses table and resets auto-increment values.
+        cursor.execute("TRUNCATE TABLE responses")
+        connection.commit()
+        print("All rows in the responses table have been deleted.")
+    except Exception as e:
+        print("Error truncating responses table:", e)
+    finally:
+        cursor.close()
+
+def delete_all_responses():
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    try:
+        # This deletes all rows from the responses table but keeps the table structure and auto-increment values.
+        cursor.execute("DELETE FROM responses")
+        connection.commit()
+        print("All rows in the responses table have been deleted.")
+    except Exception as e:
+        print("Error deleting rows from responses table:", e)
+    finally:
+        cursor.close()
 
 process_feedback()
