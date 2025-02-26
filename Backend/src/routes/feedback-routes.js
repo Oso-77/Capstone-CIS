@@ -287,10 +287,6 @@ router.post("/run-gpt", (req, res) => {
     });
   });
 
-
-router.get('/api-key', (req, res) => {
-    res.json({ apiKey: process.env.API_KEY });
-  });
   
 
 router.delete('/response', authenticateApiKey, async (req, res) => {

@@ -166,35 +166,6 @@
         return false; 
     }
   }
-//   async function deleteAllResponses() {
-//   try {
-    
-//     const keyResponse = await fetch('/api-key');
-//     const keyData = await keyResponse.json();
-//     const apiKey = keyData.apiKey;
-
-//     const response = await fetch('/response', {
-//       method: 'DELETE',
-//       headers: {
-//         'Content-Type': 'application/json',
-//         'Authorization': `Bearer ${apiKey}`
-//       }
-//     });
-
-//     if (response.ok) {
-//       const data = await response.json();
-//       console.log(data.message);
-//     } else {
-//       const errorData = await response.json();
-//       console.log('Error:', errorData.message);
-//     }
-//   } catch (error) {
-//     console.error('Error calling the delete route:', error);
-//   }
-// }
-
-
-
 
 
     document.getElementById('logoutBtn').addEventListener('click', () => {
@@ -212,42 +183,6 @@
             'Content-Type': 'application/json'
           }
         });
-        
-        // // const gptData = await gptResponse;
-
-        // // if (gptData) {
-        // //   alert(gptData);
-        // // } else if (gptData.error) {
-        // //   alert('Error: ' + gptData.error);
-        // // }
-
-        
-        // const apiKey = process.env.API_KEY;
-        
-        // // await fetch('/api-key', {
-        // //   method: 'GET',
-        // //   headers: {
-        // //   'Content-Type': 'application/json'}
-        // // });
-        // // const keyData = await keyResponse.json();
-        // // const apiKey = keyData.apiKey;
-
-        
-        // const deleteResponse = await fetch('/response', {
-        //   method: 'DELETE',
-        //   headers: {
-        //     'Content-Type': 'application/json',
-        //     'Authorization': `Bearer ${apiKey}`
-        //   }
-        // });
-
-        // if (deleteResponse.ok) {
-        //   const deleteData = await deleteResponse.json();
-        //   alert(deleteData.message);  
-        // } else {
-        //   const errorData = await deleteResponse.json();
-        //   alert('Error: ' + errorData.message);  
-        // }
 
       } catch (error) {
         console.error('Error:', error);
