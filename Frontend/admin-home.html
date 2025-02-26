@@ -95,6 +95,23 @@
       max-width: 600px;
     }
 
+    #runFunctionsBtn {
+      background-color: #2c3e50; 
+      color: white;              
+      padding: 20px 30px;         
+      border: none;               
+      border-radius: 8px;         
+      cursor: pointer;           
+      font-size: 20px;
+      font-weight: bold;           
+      transition: background-color 0.3s ease;  
+    }
+
+
+    #runFunctionsBtn:hover {
+        background-color: #34495e;  
+    }
+
   </style>
 </head>
 <body>
@@ -112,6 +129,7 @@
   <div class="content">
     <h2>Welcome, Admin</h2>
     <p>Manage engagement, posts, and more—all in one place.</p>
+    <button id="runFunctionsBtn">Generate This Weeks Cards</button>
   </div>
 
   <script>
@@ -147,10 +165,80 @@
         return false; 
     }
   }
+//   async function deleteAllResponses() {
+//   try {
+    
+//     const keyResponse = await fetch('/api-key');
+//     const keyData = await keyResponse.json();
+//     const apiKey = keyData.apiKey;
+
+//     const response = await fetch('/response', {
+//       method: 'DELETE',
+//       headers: {
+//         'Content-Type': 'application/json',
+//         'Authorization': `Bearer ${apiKey}`
+//       }
+//     });
+
+//     if (response.ok) {
+//       const data = await response.json();
+//       console.log(data.message);
+//     } else {
+//       const errorData = await response.json();
+//       console.log('Error:', errorData.message);
+//     }
+//   } catch (error) {
+//     console.error('Error calling the delete route:', error);
+//   }
+// }
+
+
+
+
 
     document.getElementById('logoutBtn').addEventListener('click', () => {
       localStorage.removeItem('token');
       window.location.href = '/api/login';
+    });
+    
+    document.getElementById('runFunctionsBtn').addEventListener('click', async () => {
+      try {
+        
+        const gptResponse = await fetch('/api/run-gpt');
+        const gptData = await gptResponse.json();
+
+        if (gptData.message) {
+          alert(gptData.message);
+        } else if (gptData.error) {
+          alert('Error: ' + gptData.error);
+        }
+
+        
+        const keyResponse = await fetch('/api-key');
+        const keyData = await keyResponse.json();
+        const apiKey = keyData.apiKey;
+
+        
+        const deleteResponse = await fetch('/response', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          }
+        });
+
+        if (deleteResponse.ok) {
+          const deleteData = await deleteResponse.json();
+          alert(deleteData.message);  
+        } else {
+          const errorData = await deleteResponse.json();
+          alert('Error: ' + errorData.message);  
+        }
+
+      } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while running the script.');
+      }
     });
 
     checkToken();
