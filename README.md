@@ -37,7 +37,7 @@ The following pages provide functionality for the platform with integrated role-
 - Feedback Dashboard - http://localhost:3000/api/board
 ![dashboard](/Assets/feedback.png)
 - Admin Home - http://localhost:3000/api/admin-home
-![ad_home](/Assets/ad_home.png)
+![ad_home]
 - Admin Response Dashboard - http://localhost:3000/api/admin-post
 ![ad_resp_dash](/Assets/ad_response.png)
 - Engagement Metrics - http://localhost:3000/api/engagement-metrics
