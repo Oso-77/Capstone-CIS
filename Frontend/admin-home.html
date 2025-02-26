@@ -204,36 +204,47 @@
     document.getElementById('runFunctionsBtn').addEventListener('click', async () => {
       try {
         
-        const gptResponse = await fetch('/api/run-gpt');
-        const gptData = await gptResponse.json();
-
-        if (gptData.message) {
-          alert(gptData.message);
-        } else if (gptData.error) {
-          alert('Error: ' + gptData.error);
-        }
-
-        
-        const keyResponse = await fetch('/api-key');
-        const keyData = await keyResponse.json();
-        const apiKey = keyData.apiKey;
-
-        
-        const deleteResponse = await fetch('/response', {
-          method: 'DELETE',
+        const gptResponse = await fetch('/api/run-gpt?function=process_feedback', {
+          method:'POST',
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`
+            'Content-Type': 'application/json'
           }
         });
+        // // const gptData = await gptResponse;
 
-        if (deleteResponse.ok) {
-          const deleteData = await deleteResponse.json();
-          alert(deleteData.message);  
-        } else {
-          const errorData = await deleteResponse.json();
-          alert('Error: ' + errorData.message);  
-        }
+        // // if (gptData) {
+        // //   alert(gptData);
+        // // } else if (gptData.error) {
+        // //   alert('Error: ' + gptData.error);
+        // // }
+
+        
+        // const apiKey = process.env.API_KEY;
+        
+        // // await fetch('/api-key', {
+        // //   method: 'GET',
+        // //   headers: {
+        // //   'Content-Type': 'application/json'}
+        // // });
+        // // const keyData = await keyResponse.json();
+        // // const apiKey = keyData.apiKey;
+
+        
+        // const deleteResponse = await fetch('/response', {
+        //   method: 'DELETE',
+        //   headers: {
+        //     'Content-Type': 'application/json',
+        //     'Authorization': `Bearer ${apiKey}`
+        //   }
+        // });
+
+        // if (deleteResponse.ok) {
+        //   const deleteData = await deleteResponse.json();
+        //   alert(deleteData.message);  
+        // } else {
+        //   const errorData = await deleteResponse.json();
+        //   alert('Error: ' + errorData.message);  
+        // }
 
       } catch (error) {
         console.error('Error:', error);

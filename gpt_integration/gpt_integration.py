@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 import os
 
+
 # Load environment variables from .env file
 load_dotenv()
 

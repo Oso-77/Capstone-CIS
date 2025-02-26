@@ -6,6 +6,9 @@ const path = require('path');
 const db = require("../utils/db");
 const jwt = require('jsonwebtoken');
 const bcryptjs = require('bcryptjs')
+const { spawn } = require('child_process');
+ 
+
 
 const router = express.Router();
 
@@ -258,22 +261,31 @@ router.delete('/posts/:postId', authenticateApiKey, async (req, res) => {
       res.status(500).json({ message: 'Error deleting post' });
     }
   });
-  router.get("/run-gpt", (req, res) => {
-    const scriptPath = path.join(__dirname, "../../gpt_integration/gpt_integration.py");
-
-    exec(`python3 ${scriptPath}`, (error, stdout, stderr) => {
-        if (error) {
-            console.error(`Error: ${error.message}`);
-            return res.status(500).json({ error: "Script execution failed" });
-        }
-        if (stderr) {
-            console.error(`stderr: ${stderr}`);
-            return res.status(500).json({ error: stderr });
-        }
-        console.log(`stdout: ${stdout}`);
-        res.json({ message: "Script executed", output: stdout });
+ // router.post("/process-feedback", authenticateToken, authenticateApiKey, (req, res) => {
+router.post("/run-gpt", (req, res) => {
+    // Spawn a new child process to call the Python script
+    const pythonProcess = spawn("python", [
+      "../gpt_integration/gpt_integration.py",  // Adjust path if necessary
+      "process_feedback"
+    ]);
+    // Capture stdout
+    pythonProcess.stdout.on("data", (data) => {
+      console.log(`stdout: ${data}`);
     });
-});
+    // Capture stderr
+    pythonProcess.stderr.on("data", (data) => {
+      console.error(`stderr: ${data}`);
+    });
+    // When the process is done, respond to the client
+    pythonProcess.on("close", (code) => {
+      console.log(`Python script exited with code ${code}`);
+      if (code === 0) {
+        return res.status(200).send("Feedback processing completed successfully.");
+      } else {
+        return res.status(500).send("Feedback processing failed. Check server logs for details.");
+      }
+    });
+  });
 
 
 router.get('/api-key', (req, res) => {
