@@ -17,6 +17,7 @@ A comprehensive employee feedback platform that enables organizations to securel
    - pip install mysql-connector-python 
    - pip install openai 
    - pip install python-dotenv
+   - pip install matplotlib
 4. Create a .env file in Backend root and project root with the following:
    - OPENAI_API_KEY
    - JWT_SECRET
