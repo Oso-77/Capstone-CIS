@@ -244,7 +244,7 @@ router.delete('/posts/:postId', authenticateApiKey, async (req, res) => {
         return res.status(400).json({ message: 'Post ID is required' });
       }
   
-      // Query to delete the post by post_id
+      
       const query = 'DELETE FROM posts WHERE post_id = ?';
       const result = await db.query(query, [postId]);
   
@@ -258,6 +258,48 @@ router.delete('/posts/:postId', authenticateApiKey, async (req, res) => {
       res.status(500).json({ message: 'Error deleting post' });
     }
   });
+  router.get("/run-gpt", (req, res) => {
+    const scriptPath = path.join(__dirname, "../../gpt_integration/gpt_integration.py");
+
+    exec(`python3 ${scriptPath}`, (error, stdout, stderr) => {
+        if (error) {
+            console.error(`Error: ${error.message}`);
+            return res.status(500).json({ error: "Script execution failed" });
+        }
+        if (stderr) {
+            console.error(`stderr: ${stderr}`);
+            return res.status(500).json({ error: stderr });
+        }
+        console.log(`stdout: ${stdout}`);
+        res.json({ message: "Script executed", output: stdout });
+    });
+});
+
+
+router.get('/api-key', (req, res) => {
+    res.json({ apiKey: process.env.API_KEY });
+  });
+  
+
+router.delete('/response', authenticateApiKey, async (req, res) => {
+    try {
+      const query = 'DELETE FROM responses';
+      const [result] = await db.execute(query);
+  
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ message: 'No rows to delete' });
+      }
+  
+      res.json({ message: 'All rows deleted successfully' });
+  
+    } catch (error) {
+      console.error('Error deleting data:', error);
+      res.status(500).json({ message: 'Error deleting data' });
+    }
+  });
+
+
+  
   
   
   
