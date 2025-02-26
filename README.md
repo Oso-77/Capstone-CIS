@@ -26,6 +26,7 @@ A comprehensive employee feedback platform that enables organizations to securel
    - DB_PASSWORD
    - DB_NAME
    - API_KEY
+5. Refer to the following for database table schema + account creation: [Schema](schema.sql)
 6. Run "npm run start" within Backend in terminal to start server
 7. Navigate to http://localhost:3000/api/login to access the platform
 
