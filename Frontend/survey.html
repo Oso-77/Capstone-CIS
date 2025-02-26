@@ -28,24 +28,24 @@
             margin: 20px;
         }
 
-        .form-container h2 {
-            margin-top: 0;
-            color: #333;
-            text-align: center;
-            font-size: 28px;
-            margin-bottom: 25px;
-        }
+            .form-container h2 {
+                margin-top: 0;
+                color: #333;
+                text-align: center;
+                font-size: 28px;
+                margin-bottom: 25px;
+            }
 
         .form-group {
             margin-bottom: 20px;
         }
 
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #555;
-            font-weight: bold;
-        }
+            .form-group label {
+                display: block;
+                margin-bottom: 8px;
+                color: #555;
+                font-weight: bold;
+            }
 
         .slider-container {
             display: flex;
@@ -54,15 +54,15 @@
             margin-top: 10px;
         }
 
-        .slider-container input[type="range"] {
-            width: 80%;
-            margin: 0 10px;
-        }
+            .slider-container input[type="range"] {
+                width: 80%;
+                margin: 0 10px;
+            }
 
-        .slider-container i {
-            font-size: 20px;
-            color: #0078d4;
-        }
+            .slider-container i {
+                font-size: 20px;
+                color: #0078d4;
+            }
 
         .slider-value {
             font-size: 1.2em;
@@ -93,9 +93,9 @@
             transition: background-color 0.3s ease;
         }
 
-        .submit-btn:hover {
-            background-color: #005a9e;
-        }
+            .submit-btn:hover {
+                background-color: #005a9e;
+            }
 
         @media (max-width: 480px) {
             .form-container {
@@ -207,10 +207,9 @@
                     contentType: "application/json; charset=utf-8",
                     dataType: "json",
                     success: function () {
-                        alert("Thank you for your feedback! Returning to login...");
+                        alert("Thank you for your feedback! Returning to Employee Feedback Board...");
                         $('#feedbackForm')[0].reset();
                         $('#satisfactionValue').text('Neutral');
-                        localStorage.removeItem("token");
                         window.location.href = '/api/board';
                     },
                     error: function () {

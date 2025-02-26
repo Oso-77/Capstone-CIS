@@ -79,7 +79,7 @@ def process_feedback():
             store_insights(entryID, gpt_answers)
     print("Feedback processed successfully.")
     categorize_existing_feedback()
-
+    generate_cards()
 
 ##process_feedback()
 
@@ -408,4 +408,3 @@ def generate_cards():
 
 
 process_feedback()
-generate_cards()
